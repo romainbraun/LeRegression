@@ -41,7 +41,8 @@ init();
 
 
 function init() {
-  clean();
+  // clean();
+  buildHTMLFile();
 }
 
 function clean() {
@@ -233,15 +234,20 @@ function uploadComparedFiles() {
  */
 function buildHTMLFile() {
   var view = {
-    title: "Hey!",
+    "data": {
+      "images": [
+        "Home.png",
+        "Home2.png"
+      ]
+    }
   };
 
   var template = path.join(__dirname, 'view/template.html');
 
   mu.compileAndRender(template, view)
     .on('data', function (data) {
-      console.log(data);
-      // console.log(data.toString());
+      // console.log(data);
+      console.log(data.toString());
     });
 
   // var html = mustache.to_html(template, view);
