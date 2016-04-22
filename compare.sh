@@ -18,11 +18,11 @@ regression=$2
 threshold=8000
 
 function compareScreenshots {
-  for (( i=$1 ; $i < $2-1; i=$i+1 )); do
+  for (( i=$1 ; $i < $2; i=$i+1 )); do
     number=`compare -metric AE -fuzz 10% $reference/${files[$i]} $regression/${files[$i]} compare/${files[$i]} 2>&1`
     if [ "$number" -lt "$threshold" ]; then
       echo -n "."
-      # rm compare/${files[$i]}
+      rm compare/${files[$i]}
     else
       echo -n "F"
     fi
@@ -40,7 +40,8 @@ function prepareFolders {
 }
 
 prepareFolders
-files_middle=${#files[@]}/2
-compareScreenshots 0 $files_middle &
-compareScreenshots $files_middle ${#files[@]} &
-wait
+files_middle=${#files[@]}
+compareScreenshots 0 $files_middle
+# compareScreenshots 0 $files_middle &
+# compareScreenshots $files_middle ${#files[@]} &
+# wait
