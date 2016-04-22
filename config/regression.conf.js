@@ -18,7 +18,7 @@ exports.config = {
 
   params: {
     env: {
-      hostname: 'https://www.google.co.uk'
+      hostname: 'https://www.madewithangular.com/'
     }
   }
 
