@@ -1,6 +1,6 @@
 exports.config = {
 
-  seleniumAddress: 'http://hub.browserstack.com/wd/hub',
+  seleniumAddress: 'http://localhost:4444/wd/hub',
 
   suites: {
     'regression': '../spec/regression.spec.js',
