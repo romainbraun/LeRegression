@@ -40,8 +40,8 @@ function prepareFolders {
 }
 
 prepareFolders
-files_middle=${#files[@]}
+files_middle=${#files[@]}/2
 compareScreenshots 0 $files_middle
-# compareScreenshots 0 $files_middle &
-# compareScreenshots $files_middle ${#files[@]} &
-# wait
+compareScreenshots 0 $files_middle &
+compareScreenshots $files_middle ${#files[@]} &
+wait

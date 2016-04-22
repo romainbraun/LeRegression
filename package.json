@@ -7,6 +7,9 @@
     "test": "test"
   },
   "dependencies": {
+    "mu2": "^0.5.20",
+    "mustache": "^2.2.1",
+    "rimraf": "^2.5.2",
     "s3": "^4.4.0"
   },
   "devDependencies": {},
@@ -25,7 +28,7 @@
     "visual",
     "regression"
   ],
-  "author": "Old St Labs",
+  "author": "Romain Braun (Old St Labs)",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/romainbraun/LeRegression/issues"
