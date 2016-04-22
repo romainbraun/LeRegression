@@ -1,0 +1,32 @@
+{
+  "name": "le-regression",
+  "version": "1.0.0",
+  "description": "Protractor automated visual regression testing tool",
+  "main": "LeRegression.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/romainbraun/LeRegression.git"
+  },
+  "keywords": [
+    "regression",
+    "protractor",
+    "angular",
+    "ci",
+    "visual",
+    "regression"
+  ],
+  "author": "Old St Labs",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/romainbraun/LeRegression/issues"
+  },
+  "homepage": "https://github.com/romainbraun/LeRegression#readme"
+}
