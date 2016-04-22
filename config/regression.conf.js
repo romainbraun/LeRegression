@@ -7,8 +7,6 @@ exports.config = {
   },
 
   multiCapabilities: [{
-    'browserstack.user' : 'jacksaunders1',
-    'browserstack.key' : 'ij3uWAekxQxDsxnvrVxm',
     browserName: 'chrome'
   }],
 
@@ -20,7 +18,7 @@ exports.config = {
 
   params: {
     env: {
-      hostname: 'https://qa.vizibl.co'
+      hostname: 'https://www.google.co.uk'
     }
   }
 
