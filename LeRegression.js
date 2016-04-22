@@ -1,9 +1,10 @@
 var args = process.argv.slice(2);
 var s3 = require('s3');
 var s3config = require(args[0]);
-var merge = require('merge');
 var isRemoteReference = false;
 var fs = require('fs');
+var walk = require('walk');
+var path = require('path');
 var exec = require('child_process').exec,
     child;
 
@@ -36,31 +37,32 @@ init();
 
 
 function init() {
-  checkForRemoteReference();
+  downloadRemoteReference();
   takeScreenshots();
 }
 
 /**
  * STEP 1
  */
-function checkForRemoteReference() {
-  var list = client.listObjects({
-    s3Params: {
-      Bucket: s3config.bucket.name
-    }
-  });
+// This may be overkill
+// function checkForRemoteReference() {
+//   var list = client.listObjects({
+//     s3Params: {
+//       Bucket: s3config.bucket.name
+//     }
+//   });
 
-  list.on('error', function(err) {
-    console.error("unable to sync:", err.stack);
-  });
-  list.on('end', function() {
-    console.log("done listing", list.dirsFound, list.objectsFound);
-    if (list.objectsFound) {
-      isRemoteReference = true;
-      downloadRemoteReference();
-    }
-  });
-}
+//   list.on('error', function(err) {
+//     console.error("unable to sync:", err.stack);
+//   });
+//   list.on('end', function() {
+//     console.log("done listing", list.dirsFound, list.objectsFound);
+//     if (list.objectsFound) {
+//       isRemoteReference = true;
+//       downloadRemoteReference();
+//     }
+//   });
+// }
 
 /**
  * STEP 2
@@ -124,7 +126,6 @@ function uploadRegressionDirectory() {
   uploader.on('end', function() {
     console.log("done uploading");
     if (!isRemoteReference) {
-      duplicateRemoteRegression();
     }
     checkForLocalReference();
   });
@@ -151,6 +152,7 @@ function duplicateRemoteRegression() {
     console.log("progress", uploader.progressAmount, uploader.progressTotal);
   });
   uploader.on('end', function() {
+    process.exit();
     console.log("done uploading");
   });
 }
@@ -165,7 +167,7 @@ function checkForLocalReference() {
       compareScreenshots();
     } else {
       console.log('no reference!');
-      process.exit(1);
+      duplicateRemoteRegression();
     }
   });
 }
@@ -174,14 +176,38 @@ function checkForLocalReference() {
  * STEP 8.2
  */
 function compareScreenshots() {
-  child = exec('./compare.sh ./test/reference ./test/regression', // command line argument directly in string
-    function (error, stdout, stderr) {      // one easy function to capture data/errors
-      console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
-      if (error !== null) {
-        console.log('exec error: ' + error);
-      }
-  });
+  var walker = walk.walk('./test/reference');
+
+  walker.on("file", fileHandler);
+  walker.on("errors", errorsHandler); // plural
+  walker.on("end", endHandler);
+
+  function fileHandler(root, fileStat, next) {
+    fs.readFile(path.resolve(root, fileStat.name), function (buffer) {
+      console.log(fileStat.name, buffer.byteLength);
+      next();
+    });
+  }
+
+  function errorsHandler(root, nodeStatsArray, next) {
+    nodeStatsArray.forEach(function (n) {
+      console.error("[ERROR] " + n.name);
+      console.error(n.error.message || (n.error.code + ": " + n.error.path));
+    });
+    next();
+  }
+
+  function endHandler() {
+    console.log("all done");
+  }
+  // child = exec('./compare.sh ./test/reference ./test/regression', // command line argument directly in string
+  //   function (error, stdout, stderr) {      // one easy function to capture data/errors
+  //     console.log('stdout: ' + stdout);
+  //     console.log('stderr: ' + stderr);
+  //     if (error !== null) {
+  //       console.log('exec error: ' + error);
+  //     }
+  // });
 }
 
 // var params = {
