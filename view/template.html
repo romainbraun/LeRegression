@@ -1,19 +1,109 @@
-<h1>LeRegression results</h1>
-{{#children}}
-<ul>
-    <li>
-        <b>{{name}}</b>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LeRegression results</title>
 
-        {{#children}}
-        <ul>
-            <li>
-                <b>{{name}}</b>
-                <img src="reference/{{../name}}/{{name}}">
-                <img src="regression/{{../name}}/{{name}}">
-                <img src="compare/{{../name}}/{{name}}">
-            </li>
-        </ul>
-        {{/children}}
-    </li>
-</ul>
-{{/children}}
+    <style type="text/css">
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      }
+      ul {
+        list-style-type: none;
+      }
+      img {
+        display: inline-block;
+        width: 30%;
+        margin-right: 3%;
+      } 
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: #f1f1f1;
+      }
+
+      .header__buttons {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        height: 39px;
+        padding: 10px 15px;
+        border: none;
+      }
+
+      .button--green {
+        background: #4CAF50;
+      }
+
+      .button--red {
+        background: #F44336;
+      }
+
+      .results {
+        margin-top: 100px;
+      }
+
+      .resolution {
+        margin: 30px;
+      }
+
+      .page {
+        margin: 15px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="header">
+      
+      <h1>LeRegression results</h1>
+
+      <div class="header__buttons">
+
+        <button class="button button--red">Try again you bus wanker</button>
+
+        <button class="button button--green">All good bruv</button>
+
+      </div>
+
+    </div>
+
+    <div class="results">
+      
+      {{#children}}
+      <ul class="resolution">
+          <li>
+              <h2>{{name}}</h2>
+
+              {{#children}}
+              <ul class="page">
+                  <li>
+                      <h3>{{name}}</h3>
+                      <img src="reference/{{../name}}/{{name}}">
+                      <img src="regression/{{../name}}/{{name}}">
+                      <img src="compare/{{../name}}/{{name}}">
+                  </li>
+              </ul>
+              {{/children}}
+          </li>
+      </ul>
+      {{/children}}
+
+    </div>
+
+  </body>
+
+</html>

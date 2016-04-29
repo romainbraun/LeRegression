@@ -1,29 +1,119 @@
-<h1>LeRegression results</h1>
-<ul>
-    <li>
-        <b>chrome1280x800</b>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LeRegression results</title>
 
-        <ul>
-            <li>
-                <b>Home.png</b>
-                <img src="reference/chrome1280x800/Home.png">
-                <img src="regression/chrome1280x800/Home.png">
-                <img src="compare/chrome1280x800/Home.png">
-            </li>
-        </ul>
-    </li>
-</ul>
-<ul>
-    <li>
-        <b>chrome400x800</b>
+    <style type="text/css">
+      body {
+        margin: 0;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      }
+      ul {
+        list-style-type: none;
+      }
+      img {
+        display: inline-block;
+        width: 30%;
+        margin-right: 3%;
+      } 
 
-        <ul>
-            <li>
-                <b>Home.png</b>
-                <img src="reference/chrome400x800/Home.png">
-                <img src="regression/chrome400x800/Home.png">
-                <img src="compare/chrome400x800/Home.png">
-            </li>
-        </ul>
-    </li>
-</ul>
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px;
+        background: #f1f1f1;
+      }
+
+      .header__buttons {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      button {
+        height: 39px;
+        padding: 10px 15px;
+        border: none;
+      }
+
+      .button--green {
+        background: #4CAF50;
+      }
+
+      .button--red {
+        background: #F44336;
+      }
+
+      .results {
+        margin-top: 100px;
+      }
+
+      .resolution {
+        margin: 30px;
+      }
+
+      .page {
+        margin: 15px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="header">
+      
+      <h1>LeRegression results</h1>
+
+      <div class="header__buttons">
+
+        <button class="button button--red">Try again you bus wanker</button>
+
+        <button class="button button--green">All good bruv</button>
+
+      </div>
+
+    </div>
+
+    <div class="results">
+      
+      <ul class="resolution">
+          <li>
+              <h2>chrome1280x800</h2>
+
+              <ul class="page">
+                  <li>
+                      <h3>Home.png</h3>
+                      <img src="reference/chrome1280x800/Home.png">
+                      <img src="regression/chrome1280x800/Home.png">
+                      <img src="compare/chrome1280x800/Home.png">
+                  </li>
+              </ul>
+          </li>
+      </ul>
+      <ul class="resolution">
+          <li>
+              <h2>chrome400x800</h2>
+
+              <ul class="page">
+                  <li>
+                      <h3>Home.png</h3>
+                      <img src="reference/chrome400x800/Home.png">
+                      <img src="regression/chrome400x800/Home.png">
+                      <img src="compare/chrome400x800/Home.png">
+                  </li>
+              </ul>
+          </li>
+      </ul>
+
+    </div>
+
+  </body>
+
+</html>
