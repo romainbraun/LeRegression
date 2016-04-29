@@ -13,7 +13,6 @@ var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
 var handlebars = require('handlebars');
 var dirTree = require('directory-tree');
-var AWS = require('aws-sdk');
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -21,8 +20,6 @@ s3config.client.s3Options = {
 };
 
 var client = s3.createClient(s3config.client);
-// 
-var s3 = new AWS.S3();
 
 /**
  * STEPS:
@@ -43,33 +40,8 @@ var s3 = new AWS.S3();
 
 init();
 
-function setACL(localFile, stat, callback) {
-  // call callback like this:
-  var s3Params = { // if there is no error
-    // ACL: 'public-read', // just an example
-  };
-  // pass `null` for `s3Params` if you want to skip uploading this file.
-  callback(null, s3Params);
-}
-
-function test() {
-  var params = {Bucket: 'leregression', Key: 'test.html', Body: 'Hello!'};
-
-  s3.putObject(params, function(err, data) {
-
-      if (err)       
-
-          console.log(err);     
-
-      else console.log("Successfully uploaded data to myBucket/myKey");   
-
-   });
-}
-
 function init() {
-  // test();
   clean();
-  // buildHTMLFile();
 }
 
 function clean() {
@@ -85,29 +57,6 @@ function clean() {
 }
 
 /**
- * STEP 1
- */
-// This may be overkill
-// function checkForRemoteReference() {
-//   var list = client.listObjects({
-//     s3Params: {
-//       Bucket: s3config.bucket.name
-//     }
-//   });
-
-//   list.on('error', function(err) {
-//     console.error("unable to sync:", err.stack);
-//   });
-//   list.on('end', function() {
-//     console.log("done listing", list.dirsFound, list.objectsFound);
-//     if (list.objectsFound) {
-//       isRemoteReference = true;
-//       downloadRemoteReference();
-//     }
-//   });
-// }
-
-/**
  * STEP 2
  */
 function downloadRemoteReference() {
@@ -119,7 +68,7 @@ function downloadRemoteReference() {
       Prefix: "reference/"
     },
 
-    getS3Params: setACL
+    
   },
   downloader = client.downloadDir(params);
 
@@ -158,10 +107,11 @@ function uploadRegressionDirectory() {
 
     s3Params: {
       Bucket: s3config.bucket.name,
-      Prefix: "regression/"
+      Prefix: "regression/",
+      ACL: 'public-read'
     },
 
-    getS3Params: setACL
+    
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -188,10 +138,11 @@ function duplicateRemoteRegression() {
 
     s3Params: {
       Bucket: s3config.bucket.name,
-      Prefix: "reference/"
+      Prefix: "reference/",
+      ACL: 'public-read'
     },
 
-    getS3Params: setACL
+    
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -246,7 +197,8 @@ function uploadComparedFiles() {
 
     s3Params: {
       Bucket: s3config.bucket.name,
-      Prefix: "compare/"
+      Prefix: "compare/",
+      ACL: 'public-read'
     },
   };
   var uploader = client.uploadDir(params);
@@ -305,122 +257,27 @@ function buildHTMLFile() {
     }); 
   }
 
-  function uploadHTML() {
-    var params = {
-      localFile: "view/rendered.html",
-
-      s3Params: {
-        Bucket: s3config.bucket.name,
-        Key: "compare.html",
-        ACL: 'public-read'
-      },
-    };
-    var uploader = client.uploadFile(params);
-    uploader.on('error', function(err) {
-      console.error("unable to upload:", err.stack);
-    });
-    uploader.on('progress', function() {
-      console.log("progress", uploader.progressMd5Amount,
-                uploader.progressAmount, uploader.progressTotal);
-    });
-    uploader.on('end', function() {
-      console.log("done uploading");
-    });
-  }
-
-  // var template = path.join(__dirname, 'view/template.html');
-
-  // var compiledTemplate = handlebars.compile(template);
-  // console.log(compiledTemplate(view));
-
-  // , view)
-  //   .on('data', function (data) {
-  //     // console.log(data);
-  //     console.log(data.toString());
-  //   });
-
-  // var html = mustache.to_html(template, view);
-
-  // console.log(html);
 }
 
-// var params = {
-//   localFile: "testDump/test.txt",
+function uploadHTML() {
+  var params = {
+    localFile: "view/rendered.html",
 
-//   s3Params: {
-//     Bucket: s3config.bucket.name,
-//     Key: "test/testfile.txt"
-//   },
-// };
-// var downloader = client.downloadFile(params);
-// downloader.on('error', function(err) {
-//   console.error("unable to download:", err.stack);
-// });
-// downloader.on('progress', function() {
-//   console.log("progress", downloader.progressAmount, downloader.progressTotal);
-// });
-// downloader.on('end', function() {
-//   console.log("done downloading");
-// });
-
-var params = {
-  localDir: refPath,
-
-  s3Params: {
-    Bucket: s3config.bucket.name,
-    Prefix: "reference/"
-  },
-};
-
-// Download a directory
-// var downloader = client.downloadDir(params);
-// downloader.on('error', function(err) {
-//   console.error("unable to sync:", err.stack);
-// });
-// downloader.on('progress', function() {
-//   console.log("progress", downloader.progressAmount, downloader.progressTotal, downloader.progressAmount, downloader.progressTotal, downloader.progressMd5Amount, downloader.progressMd5Total, downloader.deleteAmount, downloader.deleteTotal, downloader.filesFound, downloader.objectsFound, downloader.doneFindingFiles, downloader.doneFindingObjects, downloader.doneMd5);
-// });
-// downloader.on('fileDownloadStart', function() {
-//   console.log("gneuh");
-// });
-// downloader.on('fileDownloadStart', function() {
-//   console.log("gneuh");
-// });
-// downloader.on('end', function() {
-//   console.log("done downloading");
-// });
-
-//Check if a reference exists
-// client.s3.headObject({
-//   Bucket: s3config.bucket.name,
-//   Key: 'regression'
-// }, function(err, data) {
-//   if (err) {
-//     console.log(err);
-//     // file does not exist (err.statusCode == 404)
-//     return;
-//   }
-//   console.log('yes');
-//   // file exists
-// });
-
-var params = {
-  localDir: "./test",
-
-  s3Params: {
-    Bucket: s3config.bucket.name,
-    Prefix: "test/"
-  },
-};
-
-//Upload a directory
-// var uploader = client.uploadDir(params);
-// uploader.on('error', function(err) {
-//   console.error("unable to sync:", err.stack);
-// });
-// uploader.on('progress', function() {
-//   console.log("progress", uploader.progressAmount, uploader.progressTotal);
-// });
-// uploader.on('end', function() {
-//   console.log("done uploading");
-// });
+    s3Params: {
+      Bucket: s3config.bucket.name,
+      Key: "compare.html",
+      ACL: 'public-read'
+    },
+  };
+  var uploader = client.uploadFile(params);
+  uploader.on('error', function(err) {
+    console.error("unable to upload:", err.stack);
+  });
+  uploader.on('progress', function() {
+    console.log("progress", uploader.progressMd5Amount,
+              uploader.progressAmount, uploader.progressTotal);
+  });
+  uploader.on('end', function() {
+    console.log("done uploading");
+  });
+}
