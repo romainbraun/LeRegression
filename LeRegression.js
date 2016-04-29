@@ -38,7 +38,7 @@ var client = s3.createClient(s3config.client);
  * 9. ✔︎ Upload compare folder
  * 10. ✔︎ Build HTML file
  * 11. Upload HTML
- * 12. Do some kind of magic to tell github or something
+ * 12. ✔︎ Do some kind of magic to tell github or something
  * 13. If we're on master or if it's been approved idk, make regression folder the new reference folder on s3
  */
 
@@ -277,29 +277,51 @@ function uploadHTML() {
       ACL: 'public-read'
     },
   };
+
   var uploader = client.uploadFile(params);
+
   uploader.on('error', function(err) {
     console.error("unable to upload:", err.stack);
   });
+
   uploader.on('progress', function() {
     console.log("progress", uploader.progressMd5Amount,
               uploader.progressAmount, uploader.progressTotal);
   });
+
   uploader.on('end', function() {
     console.log("done uploading");
+    getGitStatus();
   });
 }
 
-function updateGitStatus(status) {
-  var options = {
-    host: 'api.github.com',
-    path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
-    headers: {
-      'User-Agent': 'LeRegression',
-      'Authorization': 'token ' + githubToken
-    },
-    method: 'POST'
+var options = {
+  host: 'api.github.com',
+  path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
+  headers: {
+    'User-Agent': 'LeRegression',
+    'Authorization': 'token ' + githubToken
+  }
+};
+
+function getGitStatus() {
+  var callback = function(response) {
+    var output = '';
+
+    response.on('data', function(data) {
+      output += data;
+    });
+
+    response.on('end', function() {
+      console.log(output);
+    });
   };
+
+  return https.request(options, callback);
+}
+
+function postGitStatus(status) {
+  options.method = 'POST';
 
   var request = https.request(options);
 
