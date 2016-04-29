@@ -24,6 +24,8 @@ var client = s3.createClient(s3config.client);
 // 
 var s3 = new AWS.S3();
 
+//
+
 /**
  * STEPS:
  * 1. ✔︎ Check for reference folder (non empty s3 bucket)
