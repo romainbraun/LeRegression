@@ -11,7 +11,8 @@ var refPath = path.join(__dirname, './test/reference');
 var regPath = path.join(__dirname, './test/regression');
 var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
-var mu = require('mu2');
+var handlebars = require('handlebars');
+var dirTree = require('directory-tree');
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -39,10 +40,19 @@ var client = s3.createClient(s3config.client);
 
 init();
 
+function setACL(localFile, stat, callback) {
+  // call callback like this:
+  var s3Params = { // if there is no error
+    // ACL: 'public-read', // just an example
+  };
+  // pass `null` for `s3Params` if you want to skip uploading this file.
+  callback(null, s3Params);
+}
+
 
 function init() {
-  // clean();
-  buildHTMLFile();
+  clean();
+  // buildHTMLFile();
 }
 
 function clean() {
@@ -91,6 +101,8 @@ function downloadRemoteReference() {
       Bucket: s3config.bucket.name,
       Prefix: "reference/"
     },
+
+    getS3Params: setACL
   },
   downloader = client.downloadDir(params);
 
@@ -131,6 +143,8 @@ function uploadRegressionDirectory() {
       Bucket: s3config.bucket.name,
       Prefix: "regression/"
     },
+
+    getS3Params: setACL
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -159,6 +173,8 @@ function duplicateRemoteRegression() {
       Bucket: s3config.bucket.name,
       Prefix: "reference/"
     },
+
+    getS3Params: setACL
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -213,7 +229,7 @@ function uploadComparedFiles() {
 
     s3Params: {
       Bucket: s3config.bucket.name,
-      Prefix: "regression/"
+      Prefix: "compare/"
     },
   };
   var uploader = client.uploadDir(params);
@@ -242,13 +258,69 @@ function buildHTMLFile() {
     }
   };
 
-  var template = path.join(__dirname, 'view/template.html');
+  var fileStructure = dirTree('test/compare/');
 
-  mu.compileAndRender(template, view)
-    .on('data', function (data) {
-      // console.log(data);
-      console.log(data.toString());
+  console.log(fileStructure.children[0]);
+
+  fs.readFile(path.join(__dirname, 'view/template.html'), function(err, data){
+    if (!err) {
+      // make the buffer into a string
+      var source = data.toString();
+      // call the render function
+      renderToString(source, fileStructure);
+    } else {
+      // handle file read error
+    }
+  });
+
+  // this will be called after the file is read
+  function renderToString(source, data) {
+    var template = handlebars.compile(source);
+    var outputString = template(data);
+    console.log(outputString);
+    fs.writeFile("view/rendered.html", outputString, function(err) {
+      if(err) {
+          return console.log(err);
+      }
+
+      console.log("The file was saved!");
+      uploadHTML();
+    }); 
+  }
+
+  function uploadHTML() {
+    var params = {
+      localFile: "view/rendered.html",
+
+      s3Params: {
+        Bucket: s3config.bucket.name,
+        Key: "compare.html",
+        ACL: 'public-read'
+      },
+    };
+    var uploader = client.uploadFile(params);
+    uploader.on('error', function(err) {
+      console.error("unable to upload:", err.stack);
     });
+    uploader.on('progress', function() {
+      console.log("progress", uploader.progressMd5Amount,
+                uploader.progressAmount, uploader.progressTotal);
+    });
+    uploader.on('end', function() {
+      console.log("done uploading");
+    });
+  }
+
+  // var template = path.join(__dirname, 'view/template.html');
+
+  // var compiledTemplate = handlebars.compile(template);
+  // console.log(compiledTemplate(view));
+
+  // , view)
+  //   .on('data', function (data) {
+  //     // console.log(data);
+  //     console.log(data.toString());
+  //   });
 
   // var html = mustache.to_html(template, view);
 

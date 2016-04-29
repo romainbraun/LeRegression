@@ -1,9 +1,18 @@
-{{#data}}
+{{#children}}
 <ul>
-{{#images}}
     <li>
-        <b>{{.}}</b>
+        <b>{{name}}</b>
+
+        {{#children}}
+        <ul>
+            <li>
+                <b>{{name}}</b>
+                <img src="reference/{{../name}}/{{name}}">
+                <img src="regression/{{../name}}/{{name}}">
+                <img src="compare/{{../name}}/{{name}}">
+            </li>
+        </ul>
+        {{/children}}
     </li>
-{{/images}}
 </ul>
-{{/data}}
+{{/children}}
