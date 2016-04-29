@@ -13,13 +13,15 @@ var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
 var handlebars = require('handlebars');
 var dirTree = require('directory-tree');
+var https = require('https');
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
   secretAccessKey: args[2]
 };
 
-var commitHash = args[3];
+var commitHash  = args[3],
+    githubToken = args[4];
 
 var client = s3.createClient(s3config.client);
 
@@ -70,7 +72,7 @@ function downloadRemoteReference() {
       Prefix: "reference/"
     },
 
-    
+
   },
   downloader = client.downloadDir(params);
 
@@ -113,7 +115,7 @@ function uploadRegressionDirectory() {
       ACL: 'public-read'
     },
 
-    
+
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -144,7 +146,7 @@ function duplicateRemoteRegression() {
       ACL: 'public-read'
     },
 
-    
+
   };
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
@@ -212,7 +214,7 @@ function uploadComparedFiles() {
   });
   uploader.on('end', function() {
     console.log("done uploading");
-    
+
   });
 }
 
@@ -260,7 +262,7 @@ function buildHTMLFile() {
 
       console.log("The file was saved!");
       uploadHTML();
-    }); 
+    });
   }
 
 }
@@ -286,4 +288,46 @@ function uploadHTML() {
   uploader.on('end', function() {
     console.log("done uploading");
   });
+}
+
+function updateGitStatus(status) {
+  var options = {
+    host: 'api.github.com',
+    path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
+    headers: {
+      'User-Agent': 'LeRegression',
+      'Authorization': 'token ' + githubToken
+    },
+    method: 'POST'
+  };
+
+  var request = https.request(options);
+
+  var url = 's3-eu-west-1.amazonaws.com/leregression/compare' + commitHash +
+            '.html';
+
+  var content = {
+    'status': status,
+    'target_url': url,
+    'context': 'LeRegression'
+  };
+
+  switch (status) {
+
+    case 'success':
+      content.description = 'Regression tests passed!';
+      break;
+
+    case 'pending':
+      content.description = 'Awaiting user input!';
+      break;
+
+    case 'failure':
+      content.description = 'Regression tests failed!';
+      break;
+
+  }
+
+  request.write(JSON.stringify(content));
+  request.end();
 }
