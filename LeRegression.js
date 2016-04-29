@@ -19,6 +19,8 @@ s3config.client.s3Options = {
   secretAccessKey: args[2]
 };
 
+var commitHash = args[3];
+
 var client = s3.createClient(s3config.client);
 
 /**
@@ -229,6 +231,10 @@ function buildHTMLFile() {
 
   var fileStructure = dirTree('test/compare/');
 
+  if (!fileStructure.children.length) {
+    process.exit();
+  }
+
   console.log(fileStructure.children[0]);
 
   fs.readFile(path.join(__dirname, 'view/template.html'), function(err, data){
@@ -265,7 +271,7 @@ function uploadHTML() {
 
     s3Params: {
       Bucket: s3config.bucket.name,
-      Key: "compare.html",
+      Key: 'compare'+ commitHash +'.html',
       ACL: 'public-read'
     },
   };
