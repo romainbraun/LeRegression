@@ -13,6 +13,7 @@ var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
 var handlebars = require('handlebars');
 var dirTree = require('directory-tree');
+var AWS = require('aws-sdk');
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -20,6 +21,8 @@ s3config.client.s3Options = {
 };
 
 var client = s3.createClient(s3config.client);
+// 
+var s3 = new AWS.S3();
 
 /**
  * STEPS:
@@ -49,8 +52,22 @@ function setACL(localFile, stat, callback) {
   callback(null, s3Params);
 }
 
+function test() {
+  var params = {Bucket: 'leregression', Key: 'test.html', Body: 'Hello!'};
+
+  s3.putObject(params, function(err, data) {
+
+      if (err)       
+
+          console.log(err);     
+
+      else console.log("Successfully uploaded data to myBucket/myKey");   
+
+   });
+}
 
 function init() {
+  // test();
   clean();
   // buildHTMLFile();
 }
@@ -121,7 +138,7 @@ function downloadRemoteReference() {
  * STEP 4
  */
 function takeScreenshots() {
-  child = exec('protractor ./config/regression-desktop.conf.js & protractor ./config/regression-mobile.conf.js & wait', // command line argument directly in string
+  child = exec('node_modules/protractor/bin/protractor ./config/regression-desktop.conf.js & node_modules/protractor/bin/protractor ./config/regression-mobile.conf.js & wait', // command line argument directly in string
     function (error, stdout, stderr) {      // one easy function to capture data/errors
       console.log('stdout: ' + stdout);
       console.log('stderr: ' + stderr);

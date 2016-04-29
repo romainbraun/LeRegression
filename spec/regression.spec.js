@@ -27,7 +27,7 @@ describe('Regression', function() {
     }
 
     browser.getCapabilities().then(function (cap) {
-      browserName = cap.caps_.browserName;
+      browserName = cap.get('browserName');
 
       browser.driver.manage().window().getSize().then(function(size) {
 
