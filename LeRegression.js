@@ -46,8 +46,7 @@ var client = s3.createClient(s3config.client);
 init();
 
 function init() {
-  // clean();
-  compareScreenshots();
+  clean();
 }
 
 function clean() {
