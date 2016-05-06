@@ -180,7 +180,27 @@ function checkForLocalReference() {
  */
 function compareScreenshots() {
   var fileStructure = dirTree('test/reference/'),
-      child;
+      child,
+      callbackCount = 0,
+      count = 0;
+
+  function computeResult(resolution, image) {
+    return function (error, stdout, stderr) {  
+          callbackCount++;
+          if (stderr < threshold) {
+            rimraf(path.join(comparePath, resolution, image), function() {
+              console.log('✔︎ No regression');
+            });
+          } else {
+            console.log('✘ Regression detected!');
+          }
+        
+          if (callbackCount === count) {
+            uploadComparedFiles();
+            buildHTMLFile();
+          }
+        };
+  }
 
   rimraf(comparePath, function() {
     fs.mkdirSync(comparePath);
@@ -193,19 +213,13 @@ function compareScreenshots() {
       for (var j = 0; j < fileStructure.children[i].children.length; j++) {
         var image = fileStructure.children[i].children[j].name;
 
+        count++;
+
         exec('compare -metric AE -fuzz 10% ' + 
              path.join(refPath, resolution, image) + ' ' + 
              path.join(regPath, resolution, image) + ' ' + 
              path.join(comparePath, resolution, image), 
-        function (error, stdout, stderr) {      
-          if (stderr < threshold) {
-            rimraf(path.join(comparePath, resolution, image), function() {
-              console.log('✔︎ No regression');
-            });
-          } else {
-            console.log('✘ Regression detected!');
-          }
-        });
+             computeResult(resolution, image));
       }
     }
   });
