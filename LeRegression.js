@@ -14,6 +14,7 @@ var rimraf = require('rimraf');
 var handlebars = require('handlebars');
 var dirTree = require('directory-tree');
 var https = require('https');
+var threshold=8000; //this needs to be configurable
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -53,10 +54,8 @@ function clean() {
   // This is awful but can be fixed easily. later though
   rimraf(refPath, function() {
     rimraf(regPath, function() {
-      rimraf(comparePath, function() {
-        downloadRemoteReference();
-        takeScreenshots();
-      });
+      downloadRemoteReference();
+      takeScreenshots();
     });
   });
 }
@@ -184,22 +183,34 @@ function compareScreenshots() {
   var fileStructure = dirTree('test/reference/'),
       child;
 
-  for (var i = 0; i < fileStructure.children.length; i++) {
-    var resolution = fileStructure.children[i].name;
-    fs.mkdirSync(path.join('test/compare/', resolution));
-    for (var j = 0; j < fileStructure.children[i].children.length; j++) {
-      var image = fileStructure.children[i].children[j].name;
-      child = exec('compare -metric AE -fuzz 10% ' + path.join(refPath, resolution, image) + ' ' + path.join(regPath, resolution, image) + ' ' + path.join(comparePath, resolution, image), // command line argument directly in string
-        function (error, stdout, stderr) {      // one easy function to capture data/errors
-          console.log('stdout: ' + stdout);
-          console.log('stderr: ' + stderr);
-          // uploadRegressionDirectory();
-          if (error !== null) {
-            console.log('exec error: ' + error);
+  rimraf(comparePath, function() {
+    fs.mkdirSync(comparePath);
+
+    for (var i = 0; i < fileStructure.children.length; i++) {
+      var resolution = fileStructure.children[i].name;
+
+      fs.mkdirSync(path.join(comparePath, resolution));
+
+      for (var j = 0; j < fileStructure.children[i].children.length; j++) {
+        var image = fileStructure.children[i].children[j].name;
+
+        exec('compare -metric AE -fuzz 10% ' + 
+             path.join(refPath, resolution, image) + ' ' + 
+             path.join(regPath, resolution, image) + ' ' + 
+             path.join(comparePath, resolution, image), 
+        function (error, stdout, stderr) {      
+          if (stderr < threshold) {
+            rimraf(path.join(comparePath, resolution, image), function() {
+              console.log('✔︎ No regression');
+            });
+          } else {
+            console.log('✘ Regression detected!');
           }
-      });
+        });
+      }
     }
-  }
+  });
+
 
   // child = execFile('./compare.sh', [refPath, regPath], // command line argument directly in string
   //   function (error, stdout, stderr) {      // one easy function to capture data/errors
