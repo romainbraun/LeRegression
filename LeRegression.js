@@ -7,8 +7,8 @@ var path = require('path');
 var exec = require('child_process').exec,
     execFile = require('child_process').execFile,
     child;
-var refPath = path.join(__dirname, './test/reference');
-var regPath = path.join(__dirname, './test/regression');
+var refPath = path.join(__dirname, './test/reference/');
+var regPath = path.join(__dirname, './test/regression/');
 var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
 var handlebars = require('handlebars');
@@ -45,7 +45,8 @@ var client = s3.createClient(s3config.client);
 init();
 
 function init() {
-  clean();
+  // clean();
+  compareScreenshots();
 }
 
 function clean() {
@@ -180,16 +181,35 @@ function checkForLocalReference() {
  * STEP 8.2
  */
 function compareScreenshots() {
-  child = execFile('./compare.sh', [refPath, regPath], // command line argument directly in string
-    function (error, stdout, stderr) {      // one easy function to capture data/errors
-      console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
-      uploadComparedFiles();
-      buildHTMLFile();
-      if (error !== null) {
-        console.log('exec error: ' + error);
-      }
-  });
+  var fileStructure = dirTree('test/reference/'),
+      child;
+
+  for (var i = 0; i < fileStructure.children.length; i++) {
+    var resolution = fileStructure.children[i].name;
+    for (var j = 0; j < fileStructure.children[i].children.length; j++) {
+      var image = fileStructure.children[i].children[j].name;
+      child = exec('compare -metric AE -fuzz 10% ' + path.join(refPath, resolution, image) + ' ' + path.join(regPath, resolution, image) + ' ' + path.join(comparePath, resolution, image), // command line argument directly in string
+        function (error, stdout, stderr) {      // one easy function to capture data/errors
+          console.log('stdout: ' + stdout);
+          console.log('stderr: ' + stderr);
+          // uploadRegressionDirectory();
+          if (error !== null) {
+            console.log('exec error: ' + error);
+          }
+      });
+    }
+  }
+
+  // child = execFile('./compare.sh', [refPath, regPath], // command line argument directly in string
+  //   function (error, stdout, stderr) {      // one easy function to capture data/errors
+  //     console.log('stdout: ' + stdout);
+  //     console.log('stderr: ' + stderr);
+  //     // uploadComparedFiles();
+  //     // buildHTMLFile();
+  //     if (error !== null) {
+  //       console.log('exec error: ' + error);
+  //     }
+  // });
 }
 
 /**
