@@ -186,6 +186,7 @@ function compareScreenshots() {
 
   for (var i = 0; i < fileStructure.children.length; i++) {
     var resolution = fileStructure.children[i].name;
+    fs.mkdirSync(path.join('test/compare/', resolution));
     for (var j = 0; j < fileStructure.children[i].children.length; j++) {
       var image = fileStructure.children[i].children[j].name;
       child = exec('compare -metric AE -fuzz 10% ' + path.join(refPath, resolution, image) + ' ' + path.join(regPath, resolution, image) + ' ' + path.join(comparePath, resolution, image), // command line argument directly in string
