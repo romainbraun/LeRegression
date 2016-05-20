@@ -194,7 +194,7 @@ function compareScreenshots() {
       count = 0;
 
   function computeResult(resolution, image) {
-    return function (error, stdout, stderr) {  
+    return function (error, stdout, stderr) {
       console.log(stderr);
       callbackCount++;
       if (stderr < threshold) {
@@ -204,7 +204,7 @@ function compareScreenshots() {
       } else {
         console.log('✘ Regression detected!');
       }
-    
+
       if (callbackCount === count) {
         uploadComparedFiles();
         buildHTMLFile();
@@ -225,10 +225,10 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 10% ' + 
-             path.join(refPath, resolution, image) + ' ' + 
-             path.join(regPath, resolution, image) + ' ' + 
-             path.join(comparePath, resolution, image), 
+        exec('compare -metric AE -fuzz 10% ' +
+             path.join(refPath, resolution, image) + ' ' +
+             path.join(regPath, resolution, image) + ' ' +
+             path.join(comparePath, resolution, image),
              computeResult(resolution, image));
       }
     }
@@ -288,6 +288,10 @@ function buildHTMLFile() {
   // this will be called after the file is read
   function renderToString(source, data) {
     var template = handlebars.compile(source);
+
+    data.hash  = commitHash;
+    data.token = githubToken;
+
     var outputString = template(data);
     console.log(outputString);
     fs.writeFile("view/rendered.html", outputString, function(err) {
