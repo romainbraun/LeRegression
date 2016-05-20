@@ -7,13 +7,14 @@ var path = require('path');
 var exec = require('child_process').exec,
     execFile = require('child_process').execFile,
     child;
-var refPath = path.join(__dirname, './test/reference');
-var regPath = path.join(__dirname, './test/regression');
+var refPath = path.join(__dirname, './test/reference/');
+var regPath = path.join(__dirname, './test/regression/');
 var comparePath = path.join(__dirname, './test/compare');
 var rimraf = require('rimraf');
 var handlebars = require('handlebars');
 var dirTree = require('directory-tree');
 var https = require('https');
+var threshold=8000; //this needs to be configurable
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -61,10 +62,8 @@ function clean() {
   // This is awful but can be fixed easily. later though
   rimraf(refPath, function() {
     rimraf(regPath, function() {
-      rimraf(comparePath, function() {
-        downloadRemoteReference();
-        takeScreenshots();
-      });
+      downloadRemoteReference();
+      takeScreenshots();
     });
   });
 }
@@ -189,15 +188,50 @@ function checkForLocalReference() {
  * STEP 8.2
  */
 function compareScreenshots() {
-  child = execFile('./compare.sh', [refPath, regPath], // command line argument directly in string
-    function (error, stdout, stderr) {      // one easy function to capture data/errors
-      console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
-      uploadComparedFiles();
-      buildHTMLFile();
-      if (error !== null) {
-        console.log('exec error: ' + error);
+  var fileStructure = dirTree('test/reference/'),
+      child,
+      callbackCount = 0,
+      count = 0;
+
+  function computeResult(resolution, image) {
+    return function (error, stdout, stderr) {  
+      console.log(stderr);
+      callbackCount++;
+      if (stderr < threshold) {
+        rimraf(path.join(comparePath, resolution, image), function() {
+          console.log('✔︎ No regression');
+        });
+      } else {
+        console.log('✘ Regression detected!');
       }
+    
+      if (callbackCount === count) {
+        uploadComparedFiles();
+        buildHTMLFile();
+      }
+    };
+  }
+
+  rimraf(comparePath, function() {
+    fs.mkdirSync(comparePath);
+
+    for (var i = 0; i < fileStructure.children.length; i++) {
+      var resolution = fileStructure.children[i].name;
+
+      fs.mkdirSync(path.join(comparePath, resolution));
+
+      for (var j = 0; j < fileStructure.children[i].children.length; j++) {
+        var image = fileStructure.children[i].children[j].name;
+
+        count++;
+
+        exec('compare -metric AE -fuzz 10% ' + 
+             path.join(refPath, resolution, image) + ' ' + 
+             path.join(regPath, resolution, image) + ' ' + 
+             path.join(comparePath, resolution, image), 
+             computeResult(resolution, image));
+      }
+    }
   });
 }
 
@@ -231,16 +265,8 @@ function uploadComparedFiles() {
  * STEP 10 or something
  */
 function buildHTMLFile() {
-  var view = {
-    "data": {
-      "images": [
-        "Home.png",
-        "Home2.png"
-      ]
-    }
-  };
-
   var fileStructure = dirTree('test/compare/');
+  console.log(fileStructure);
 
   if (!fileStructure.children.length) {
     process.exit();
