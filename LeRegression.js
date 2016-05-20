@@ -1,20 +1,20 @@
-var args = process.argv.slice(2);
-var s3 = require('s3');
-var s3config = require(args[0]);
-var isRemoteReference = false;
-var fs = require('fs');
-var path = require('path');
-var exec = require('child_process').exec,
-    execFile = require('child_process').execFile,
-    child;
-var refPath = path.join(__dirname, './test/reference/');
-var regPath = path.join(__dirname, './test/regression/');
-var comparePath = path.join(__dirname, './test/compare');
-var rimraf = require('rimraf');
-var handlebars = require('handlebars');
-var dirTree = require('directory-tree');
-var https = require('https');
-var threshold=8000; //this needs to be configurable
+var args              = process.argv.slice(2),
+    s3                = require('s3'),
+    fs                = require('fs'),
+    path              = require('path'),
+    exec              = require('child_process').exec,
+    https             = require('https'),
+    rimraf            = require('rimraf'),
+    dirTree           = require('directory-tree'),
+    execFile          = require('child_process').execFile,
+    handlebars        = require('handlebars'),
+    config            = require(args[0]),
+    s3config          = config.s3config,
+    threshold         = config.threshold,
+    refPath           = '/tmp/leregression/reference/',
+    regPath           = '/tmp/leregression/regression/',
+    comparePath       = '/tmp/leregression/compare',
+    isRemoteReference = false;
 
 s3config.client.s3Options = {
   accessKeyId: args[1],
@@ -46,7 +46,11 @@ var client = s3.createClient(s3config.client);
 init();
 
 function init() {
-  clean();
+  rimraf('/tmp/leregression/', function() {
+    fs.mkdirSync('/tmp/leregression/');
+    fs.createReadStream(config.sitemap).pipe(fs.createWriteStream('/tmp/leregression/sitemap.json'));
+    clean();
+  });
 }
 
 function clean() {
@@ -90,8 +94,16 @@ function downloadRemoteReference() {
  * STEP 4
  */
 function takeScreenshots() {
-  child = exec('node_modules/protractor/bin/protractor ./config/regression-desktop.conf.js & node_modules/protractor/bin/protractor ./config/regression-mobile.conf.js & wait', // command line argument directly in string
-    function (error, stdout, stderr) {      // one easy function to capture data/errors
+  var command = '';
+
+  for (var i = 0; i < config.capabilities.length; i++) {
+    var capability = config.capabilities[i];
+    command += 'node_modules/protractor/bin/protractor ' + capability + ' & ';
+  }
+  command += 'wait';
+
+  var child = exec(command,
+    function (error, stdout, stderr) {
       console.log('stdout: ' + stdout);
       console.log('stderr: ' + stderr);
       uploadRegressionDirectory();
@@ -179,7 +191,7 @@ function checkForLocalReference() {
  * STEP 8.2
  */
 function compareScreenshots() {
-  var fileStructure = dirTree('test/reference/'),
+  var fileStructure = dirTree(refPath),
       child,
       callbackCount = 0,
       count = 0;
@@ -256,7 +268,7 @@ function uploadComparedFiles() {
  * STEP 10 or something
  */
 function buildHTMLFile() {
-  var fileStructure = dirTree('test/compare/');
+  var fileStructure = dirTree(comparePath);
   console.log(fileStructure);
 
   if (!fileStructure.children.length) {
@@ -281,7 +293,7 @@ function buildHTMLFile() {
     var template = handlebars.compile(source);
     var outputString = template(data);
     console.log(outputString);
-    fs.writeFile("view/rendered.html", outputString, function(err) {
+    fs.writeFile("/tmp/rendered.html", outputString, function(err) {
       if(err) {
           return console.log(err);
       }
@@ -295,7 +307,7 @@ function buildHTMLFile() {
 
 function uploadHTML() {
   var params = {
-    localFile: "view/rendered.html",
+    localFile: "/tmp/rendered.html",
 
     s3Params: {
       Bucket: s3config.bucket.name,
