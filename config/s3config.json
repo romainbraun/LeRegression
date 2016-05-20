@@ -1,9 +1,0 @@
-{
-  "client" : {
-    "multipartUploadSize": 5242880,
-    "region": "EU"
-  },
-  "bucket": {
-    "name": "leregression"
-  }
-}

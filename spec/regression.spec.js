@@ -1,12 +1,12 @@
 var fs = require('fs');
-var siteMap = require('../config/sitemap.json');
+var siteMap = require('/tmp/leregression/sitemap.json');
 
 describe('Regression', function() {
   var browserName, browserSize;
   var capture = function (name) {
     name = name.replace(/ /g, '_');
     return browser.takeScreenshot().then(function (png) {
-        var image_path = 'test/regression/' +
+        var image_path = '/tmp/leregression/regression/' +
                           browserName +
                           browserSize +
                           '/' +
@@ -21,7 +21,7 @@ describe('Regression', function() {
 
   beforeAll(function() {
     try {
-      fs.mkdirSync('test/regression/');
+      fs.mkdirSync('/tmp/leregression/regression/');
     } catch(e) {
       if ( e.code != 'EEXIST' ) throw e;
     }
@@ -34,7 +34,7 @@ describe('Regression', function() {
         browserSize = size.width + 'x' + size.height;
 
         try {
-          fs.mkdirSync('test/regression/' + browserName + browserSize);
+          fs.mkdirSync('/tmp/leregression/regression/' + browserName + browserSize);
         } catch(e) {
           if ( e.code != 'EEXIST' ) throw e;
         }
