@@ -15,7 +15,7 @@
         display: inline-block;
         width: 30%;
         margin-right: 3%;
-      } 
+      }
 
       .header {
         position: fixed;
@@ -65,24 +65,28 @@
       }
     </style>
   </head>
-  <body>
+  <body hash="{{ hash }}" token="{{ token }}">
 
     <div class="header">
-      
+
       <h1>LeRegression results</h1>
 
       <div class="header__buttons">
 
-        <button class="button button--red">Try again you bus wanker</button>
+        <button class="button button--red" action="failure">
+          Try again you bus wanker
+        </button>
 
-        <button class="button button--green">All good bruv</button>
+        <button class="button button--green" action="success">
+          All good bruv
+        </button>
 
       </div>
 
     </div>
 
     <div class="results">
-      
+
       {{#children}}
       <ul class="resolution">
           <li>
@@ -103,6 +107,61 @@
       {{/children}}
 
     </div>
+
+    <script type="text/javascript">
+      var body    = document.getElementsByTagName('body')[0],
+          hash    = body.getAttribute('hash'),
+          token   = body.getAttribute('token'),
+          buttons = document.getElementsByTagName('button');
+
+      for (var i = 0; i< buttons.length; i++) {
+        var action = buttons[i].getAttribute('action');
+
+        buttons[i].addEventListener('click', updateGit(action));
+      }
+
+      var options = {
+        host: 'api.github.com',
+        path: '/repos/romainbraun/LeRegression/commits/' + hash + '/statuses',
+        headers: {
+          'User-Agent': 'LeRegression',
+          'Authorization': 'token ' + token
+        }
+      };
+
+      function updateGit(action) {
+        return function() {
+          var http = new XMLHttpRequest();
+
+          http.open('POST', 'https://' + options.host + options.path, true);
+          http.setRequestHeader('User-Agent', options.headers['User-Agent']);
+          http.setRequestHeader('Authorization', options.headers['Authorization']);
+
+          var data = {
+            'state': action,
+            'context': 'LeRegression'
+          };
+
+          switch (status) {
+
+            case 'success':
+              data.description = 'Regression tests passed!';
+              break;
+
+            case 'pending':
+              data.description = 'Awaiting user input!';
+              break;
+
+            case 'failure':
+              data.description = 'Regression tests failed!';
+              break;
+
+          }
+
+          http.send(JSON.stringify(data));
+        }
+      }
+    </script>
 
   </body>
 
