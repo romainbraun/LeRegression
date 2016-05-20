@@ -186,6 +186,7 @@ function compareScreenshots() {
 
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {  
+      console.log(stderr);
       callbackCount++;
       if (stderr < threshold) {
         rimraf(path.join(comparePath, resolution, image), function() {
@@ -255,16 +256,8 @@ function uploadComparedFiles() {
  * STEP 10 or something
  */
 function buildHTMLFile() {
-  var view = {
-    "data": {
-      "images": [
-        "Home.png",
-        "Home2.png"
-      ]
-    }
-  };
-
   var fileStructure = dirTree('test/compare/');
+  console.log(fileStructure);
 
   if (!fileStructure.children.length) {
     process.exit();
