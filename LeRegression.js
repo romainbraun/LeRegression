@@ -23,6 +23,15 @@ s3config.client.s3Options = {
 var commitHash  = args[3],
     githubToken = args[4];
 
+var options = {
+  host: 'api.github.com',
+  path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
+  headers: {
+    'User-Agent': 'LeRegression',
+    'Authorization': 'token ' + githubToken
+  }
+};
+
 var client = s3.createClient(s3config.client);
 
 /**
@@ -295,15 +304,6 @@ function uploadHTML() {
   });
 }
 
-var options = {
-  host: 'api.github.com',
-  path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
-  headers: {
-    'User-Agent': 'LeRegression',
-    'Authorization': 'token ' + githubToken
-  }
-};
-
 function getGitStatus() {
   var callback = function(response) {
     var output = '';
@@ -313,11 +313,19 @@ function getGitStatus() {
     });
 
     response.on('end', function() {
-      console.log(output);
+      if (JSON.parse(output)[0].state === 'pending') {
+        console.log('Awaiting user input from Github');
+        setTimeout(function() {
+          getGitStatus();
+        }, 3600);
+      } else {
+        // everything is good
+        postGitStatus(JSON.parse(output)[0].state);
+      }
     });
   };
 
-  return https.request(options, callback);
+  https.request(options, callback).end();
 }
 
 function postGitStatus(status) {
