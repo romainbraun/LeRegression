@@ -24,6 +24,15 @@ s3config.client.s3Options = {
 var commitHash  = args[3],
     githubToken = args[4];
 
+var options = {
+  host: 'api.github.com',
+  path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
+  headers: {
+    'User-Agent': 'LeRegression',
+    'Authorization': 'token ' + githubToken
+  }
+};
+
 var client = s3.createClient(s3config.client);
 
 /**
@@ -39,7 +48,7 @@ var client = s3.createClient(s3config.client);
  * 9. ✔︎ Upload compare folder
  * 10. ✔︎ Build HTML file
  * 11. Upload HTML
- * 12. Do some kind of magic to tell github or something
+ * 12. ✔︎ Do some kind of magic to tell github or something
  * 13. If we're on master or if it's been approved idk, make regression folder the new reference folder on s3
  */
 
@@ -185,7 +194,7 @@ function compareScreenshots() {
       count = 0;
 
   function computeResult(resolution, image) {
-    return function (error, stdout, stderr) {  
+    return function (error, stdout, stderr) {
       console.log(stderr);
       callbackCount++;
       if (stderr < threshold) {
@@ -195,7 +204,7 @@ function compareScreenshots() {
       } else {
         console.log('✘ Regression detected!');
       }
-    
+
       if (callbackCount === count) {
         uploadComparedFiles();
         buildHTMLFile();
@@ -216,10 +225,10 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 10% ' + 
-             path.join(refPath, resolution, image) + ' ' + 
-             path.join(regPath, resolution, image) + ' ' + 
-             path.join(comparePath, resolution, image), 
+        exec('compare -metric AE -fuzz 10% ' +
+             path.join(refPath, resolution, image) + ' ' +
+             path.join(regPath, resolution, image) + ' ' +
+             path.join(comparePath, resolution, image),
              computeResult(resolution, image));
       }
     }
@@ -279,6 +288,10 @@ function buildHTMLFile() {
   // this will be called after the file is read
   function renderToString(source, data) {
     var template = handlebars.compile(source);
+
+    data.hash  = commitHash;
+    data.token = githubToken;
+
     var outputString = template(data);
     console.log(outputString);
     fs.writeFile("view/rendered.html", outputString, function(err) {
@@ -303,29 +316,50 @@ function uploadHTML() {
       ACL: 'public-read'
     },
   };
+
   var uploader = client.uploadFile(params);
+
   uploader.on('error', function(err) {
     console.error("unable to upload:", err.stack);
   });
+
   uploader.on('progress', function() {
     console.log("progress", uploader.progressMd5Amount,
               uploader.progressAmount, uploader.progressTotal);
   });
+
   uploader.on('end', function() {
     console.log("done uploading");
+    getGitStatus();
   });
 }
 
-function updateGitStatus(status) {
-  var options = {
-    host: 'api.github.com',
-    path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
-    headers: {
-      'User-Agent': 'LeRegression',
-      'Authorization': 'token ' + githubToken
-    },
-    method: 'POST'
+function getGitStatus() {
+  var callback = function(response) {
+    var output = '';
+
+    response.on('data', function(data) {
+      output += data;
+    });
+
+    response.on('end', function() {
+      if (JSON.parse(output)[0].state === 'pending') {
+        console.log('Awaiting user input from Github');
+        setTimeout(function() {
+          getGitStatus();
+        }, 3600);
+      } else {
+        // everything is good
+        postGitStatus(JSON.parse(output)[0].state);
+      }
+    });
   };
+
+  https.request(options, callback).end();
+}
+
+function postGitStatus(status) {
+  options.method = 'POST';
 
   var request = https.request(options);
 
