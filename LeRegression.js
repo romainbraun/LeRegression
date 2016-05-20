@@ -186,20 +186,20 @@ function compareScreenshots() {
 
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {  
-          callbackCount++;
-          if (stderr < threshold) {
-            rimraf(path.join(comparePath, resolution, image), function() {
-              console.log('✔︎ No regression');
-            });
-          } else {
-            console.log('✘ Regression detected!');
-          }
-        
-          if (callbackCount === count) {
-            uploadComparedFiles();
-            buildHTMLFile();
-          }
-        };
+      callbackCount++;
+      if (stderr < threshold) {
+        rimraf(path.join(comparePath, resolution, image), function() {
+          console.log('✔︎ No regression');
+        });
+      } else {
+        console.log('✘ Regression detected!');
+      }
+    
+      if (callbackCount === count) {
+        uploadComparedFiles();
+        buildHTMLFile();
+      }
+    };
   }
 
   rimraf(comparePath, function() {
