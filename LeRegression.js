@@ -223,18 +223,6 @@ function compareScreenshots() {
       }
     }
   });
-
-
-  // child = execFile('./compare.sh', [refPath, regPath], // command line argument directly in string
-  //   function (error, stdout, stderr) {      // one easy function to capture data/errors
-  //     console.log('stdout: ' + stdout);
-  //     console.log('stderr: ' + stderr);
-  //     // uploadComparedFiles();
-  //     // buildHTMLFile();
-  //     if (error !== null) {
-  //       console.log('exec error: ' + error);
-  //     }
-  // });
 }
 
 /**
