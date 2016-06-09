@@ -1,5 +1,6 @@
-var args              = process.argv.slice(2),
-    s3                = require('s3'),
+#!/usr/bin/env node
+
+var s3                = require('s3'),
     fs                = require('fs'),
     path              = require('path'),
     exec              = require('child_process').exec,
@@ -8,23 +9,41 @@ var args              = process.argv.slice(2),
     dirTree           = require('directory-tree'),
     execFile          = require('child_process').execFile,
     handlebars        = require('handlebars'),
-    config            = require(args[0]),
-    s3config          = config.s3config,
-    threshold         = config.threshold,
+    program           = require('commander'),
     refPath           = '/tmp/leregression/reference/',
     regPath           = '/tmp/leregression/regression/',
     comparePath       = '/tmp/leregression/compare',
-    isRemoteReference = false;
+    isRemoteReference = false,
+    githubToken,
+    commitHash,
+    threshold,
+    s3config,
+    options,
+    config,
+    client;
+
+program
+  .option('-c, --config <configFile>', 'Configuration JSON')
+  .option('-a, --accessKeyS3 <accessKeyId>', 'S3 Access Key')
+  .option('-s, --secretKeyS3 <secretAccessKey>', 'S3 Secret Access Key. These should be set as env variables in your CI environment')
+  .option('-h, --commitHash <commitHash>', 'Hash of the current commit')
+  .option('-t, --githubToken <githubToken>', 'GitHub access token')
+  .parse(process.argv);
+
+config = require(configFile);
+
+threshold = config.threshold;
+s3config = config.s3config;
 
 s3config.client.s3Options = {
-  accessKeyId: args[1],
-  secretAccessKey: args[2]
+  accessKeyId: program.accessKeyId,
+  secretAccessKey: program.secretAccessKey
 };
 
-var commitHash  = args[3],
-    githubToken = args[4];
+commitHash  = program.commitHash;
+githubToken = program.githubToken;
 
-var options = {
+options = {
   host: 'api.github.com',
   path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
   headers: {
@@ -33,7 +52,9 @@ var options = {
   }
 };
 
-var client = s3.createClient(s3config.client);
+client = s3.createClient(s3config.client);
+
+init();
 
 /**
  * STEPS:
@@ -51,8 +72,6 @@ var client = s3.createClient(s3config.client);
  * 12. ✔︎ Do some kind of magic to tell github or something
  * 13. If we're on master or if it's been approved idk, make regression folder the new reference folder on s3
  */
-
-init();
 
 function init() {
   rimraf('/tmp/leregression/', function() {
