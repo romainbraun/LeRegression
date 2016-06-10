@@ -1,0 +1,22 @@
+{
+  "sitemap": "./test/config/sitemap.json",
+
+  "capabilities": [
+    "./test/config/regression-desktop.conf.js",
+    "./test/config/regression-mobile.conf.js"
+  ],
+
+  "threshold": 8000,
+
+  "repository": "/repos/romainbraun/LeRegression"
+
+  "s3config": {
+    "client" : {
+      "multipartUploadSize": 5242880,
+      "region": "EU"
+    },
+    "bucket": {
+      "name": "leregression"
+    }
+  }
+}
