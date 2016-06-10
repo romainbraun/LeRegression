@@ -1,5 +1,6 @@
-var args              = process.argv.slice(2),
-    s3                = require('s3'),
+#!/usr/bin/env node
+
+var s3                = require('s3'),
     fs                = require('fs'),
     path              = require('path'),
     exec              = require('child_process').exec,
@@ -8,23 +9,41 @@ var args              = process.argv.slice(2),
     dirTree           = require('directory-tree'),
     execFile          = require('child_process').execFile,
     handlebars        = require('handlebars'),
-    config            = require(args[0]),
-    s3config          = config.s3config,
-    threshold         = config.threshold,
+    program           = require('commander'),
     refPath           = '/tmp/leregression/reference/',
     regPath           = '/tmp/leregression/regression/',
     comparePath       = '/tmp/leregression/compare',
-    isRemoteReference = false;
+    isRemoteReference = false,
+    githubToken,
+    commitHash,
+    threshold,
+    s3config,
+    options,
+    config,
+    client;
+
+program
+  .option('-c, --config-file [config-file]', 'Configuration JSON')
+  .option('-a, --access-key-id [access-key-id]', 'S3 Access Key')
+  .option('-s, --secret-access-key [secret-access-key]', 'S3 Secret Access Key. These should be set as env variables in your CI environment')
+  .option('-h, --commit-hash [commit-hash]', 'Hash of the current commit')
+  .option('-t, --github-token [github-token]', 'GitHub access token')
+  .parse(process.argv);
+
+config = JSON.parse(fs.readFileSync(program.configFile, 'utf8'));
+
+threshold = config.threshold;
+s3config = config.s3config;
 
 s3config.client.s3Options = {
-  accessKeyId: args[1],
-  secretAccessKey: args[2]
+  accessKeyId: program.accessKeyId,
+  secretAccessKey: program.secretAccessKey
 };
 
-var commitHash  = args[3],
-    githubToken = args[4];
+commitHash  = program.commitHash;
+githubToken = program.githubToken;
 
-var options = {
+options = {
   host: 'api.github.com',
   path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
   headers: {
@@ -33,7 +52,9 @@ var options = {
   }
 };
 
-var client = s3.createClient(s3config.client);
+client = s3.createClient(s3config.client);
+
+init();
 
 /**
  * STEPS:
@@ -52,12 +73,11 @@ var client = s3.createClient(s3config.client);
  * 13. If we're on master or if it's been approved idk, make regression folder the new reference folder on s3
  */
 
-init();
-
 function init() {
   rimraf('/tmp/leregression/', function() {
     fs.mkdirSync('/tmp/leregression/');
     fs.createReadStream(config.sitemap).pipe(fs.createWriteStream('/tmp/leregression/sitemap.json'));
+    fs.createReadStream(path.join(__dirname, 'spec/regression.spec.js')).pipe(fs.createWriteStream('/tmp/leregression/regression.spec.js'));
     clean();
   });
 }
@@ -107,7 +127,7 @@ function takeScreenshots() {
 
   for (var i = 0; i < config.capabilities.length; i++) {
     var capability = config.capabilities[i];
-    command += 'node_modules/protractor/bin/protractor ' + capability + ' & ';
+    command += 'protractor ' + capability + ' & ';
   }
   command += 'wait';
 
@@ -205,6 +225,8 @@ function compareScreenshots() {
       callbackCount = 0,
       count = 0;
 
+  console.log(fileStructure);
+
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {
       console.log(stderr);
@@ -237,7 +259,7 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 10% ' +
+        exec('compare -metric AE -fuzz 15% ' +
              path.join(refPath, resolution, image) + ' ' +
              path.join(regPath, resolution, image) + ' ' +
              path.join(comparePath, resolution, image),
