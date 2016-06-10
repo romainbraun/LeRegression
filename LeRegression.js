@@ -45,7 +45,7 @@ githubToken = program.githubToken;
 
 options = {
   host: 'api.github.com',
-  path: '/repos/romainbraun/LeRegression/commits/' + commitHash + '/statuses',
+  path: config.repository + '/commits/' + commitHash + '/statuses',
   headers: {
     'User-Agent': 'LeRegression',
     'Authorization': 'token ' + githubToken
@@ -111,9 +111,6 @@ function downloadRemoteReference() {
   downloader.on('error', function(err) {
     console.error("unable to sync:", err.stack);
   });
-  downloader.on('progress', function() {
-    console.log("progress", downloader.progressAmount, downloader.progressTotal, downloader.progressAmount, downloader.progressTotal, downloader.progressMd5Amount, downloader.progressMd5Total, downloader.deleteAmount, downloader.deleteTotal, downloader.filesFound, downloader.objectsFound, downloader.doneFindingFiles, downloader.doneFindingObjects, downloader.doneMd5);
-  });
   downloader.on('end', function() {
     console.log("done downloading");
   });
@@ -161,9 +158,6 @@ function uploadRegressionDirectory() {
   uploader.on('error', function(err) {
     console.error("unable to sync:", err.stack);
   });
-  uploader.on('progress', function() {
-    console.log("progress", uploader.progressAmount, uploader.progressTotal);
-  });
   uploader.on('end', function() {
     console.log("done uploading");
     if (!isRemoteReference) {
@@ -191,9 +185,6 @@ function duplicateRemoteRegression() {
   var uploader = client.uploadDir(params);
   uploader.on('error', function(err) {
     console.error("unable to sync:", err.stack);
-  });
-  uploader.on('progress', function() {
-    console.log("progress", uploader.progressAmount, uploader.progressTotal);
   });
   uploader.on('end', function() {
     process.exit();
@@ -286,9 +277,6 @@ function uploadComparedFiles() {
   uploader.on('error', function(err) {
     console.error("unable to sync:", err.stack);
   });
-  uploader.on('progress', function() {
-    console.log("progress", uploader.progressAmount, uploader.progressTotal);
-  });
   uploader.on('end', function() {
     console.log("done uploading");
 
@@ -355,11 +343,6 @@ function uploadHTML() {
 
   uploader.on('error', function(err) {
     console.error("unable to upload:", err.stack);
-  });
-
-  uploader.on('progress', function() {
-    console.log("progress", uploader.progressMd5Amount,
-              uploader.progressAmount, uploader.progressTotal);
   });
 
   uploader.on('end', function() {
