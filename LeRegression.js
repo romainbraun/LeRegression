@@ -77,6 +77,7 @@ function init() {
   rimraf('/tmp/leregression/', function() {
     fs.mkdirSync('/tmp/leregression/');
     fs.createReadStream(config.sitemap).pipe(fs.createWriteStream('/tmp/leregression/sitemap.json'));
+    fs.createReadStream(path.join(__dirname, 'spec/regression.spec.js')).pipe(fs.createWriteStream('/tmp/leregression/regression.spec.js'));
     clean();
   });
 }
@@ -224,6 +225,8 @@ function compareScreenshots() {
       callbackCount = 0,
       count = 0;
 
+  console.log(fileStructure);
+
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {
       console.log(stderr);
@@ -256,7 +259,7 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 10% ' +
+        exec('compare -metric AE -fuzz 15% ' +
              path.join(refPath, resolution, image) + ' ' +
              path.join(regPath, resolution, image) + ' ' +
              path.join(comparePath, resolution, image),
