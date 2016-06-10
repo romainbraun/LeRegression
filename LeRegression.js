@@ -45,9 +45,9 @@ githubToken = program.githubToken;
 
 options = {
   host: 'api.github.com',
-  path: config.repository + '/commits/' + commitHash + '/statuses',
+  path: config.repository + '/statuses/' + commitHash,
   headers: {
-    'User-Agent': 'LeRegression',
+    'User-Agent': s3config.bucket.name,
     'Authorization': 'token ' + githubToken
   }
 };
