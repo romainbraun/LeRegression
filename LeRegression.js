@@ -126,7 +126,7 @@ function takeScreenshots() {
 
   for (var i = 0; i < config.capabilities.length; i++) {
     var capability = config.capabilities[i];
-    command += path.join(__dirname, 'node_modules/protractor/bin/protractor') + ' ' + capability + ' & ';
+    command += 'protractor ' + capability + ' & ';
   }
   command += 'wait';
 
