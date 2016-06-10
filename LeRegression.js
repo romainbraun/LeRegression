@@ -23,14 +23,14 @@ var s3                = require('s3'),
     client;
 
 program
-  .option('-c, --config <configFile>', 'Configuration JSON')
-  .option('-a, --accessKeyS3 <accessKeyId>', 'S3 Access Key')
-  .option('-s, --secretKeyS3 <secretAccessKey>', 'S3 Secret Access Key. These should be set as env variables in your CI environment')
-  .option('-h, --commitHash <commitHash>', 'Hash of the current commit')
-  .option('-t, --githubToken <githubToken>', 'GitHub access token')
+  .option('-c, --config-file [config-file]', 'Configuration JSON')
+  .option('-a, --access-key-id [access-key-id]', 'S3 Access Key')
+  .option('-s, --secret-access-key [secret-access-key]', 'S3 Secret Access Key. These should be set as env variables in your CI environment')
+  .option('-h, --commit-hash [commit-hash]', 'Hash of the current commit')
+  .option('-t, --github-token [github-token]', 'GitHub access token')
   .parse(process.argv);
 
-config = require(configFile);
+config = JSON.parse(fs.readFileSync(program.configFile, 'utf8'));
 
 threshold = config.threshold;
 s3config = config.s3config;
@@ -126,7 +126,7 @@ function takeScreenshots() {
 
   for (var i = 0; i < config.capabilities.length; i++) {
     var capability = config.capabilities[i];
-    command += 'node_modules/protractor/bin/protractor ' + capability + ' & ';
+    command += path.join(__dirname, 'node_modules/protractor/bin/protractor') + ' ' + capability + ' & ';
   }
   command += 'wait';
 
