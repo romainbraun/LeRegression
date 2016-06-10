@@ -127,7 +127,7 @@ function takeScreenshots() {
 
   for (var i = 0; i < config.capabilities.length; i++) {
     var capability = config.capabilities[i];
-    command += (process.env.PROTRACTOR_BIN | 'protractor') + ' ' + capability + ' & ';
+    command += (process.env.PROTRACTOR_BIN || 'protractor') + ' ' + capability + ' & ';
   }
   command += 'wait';
 
