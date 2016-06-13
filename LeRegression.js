@@ -294,13 +294,10 @@ function uploadComparedFiles() {
  */
 function buildHTMLFile() {
   var fileStructure = dirTree(comparePath);
-  console.log(fileStructure);
 
-  if (!fileStructure.children.length) {
+  if (!fileStructure || !fileStructure.children.length) {
     process.exit();
   }
-
-  console.log(fileStructure.children[0]);
 
   fs.readFile(path.join(__dirname, 'view/template.html'), function(err, data){
     if (!err) {
@@ -353,7 +350,7 @@ function uploadHTML() {
 
   uploader.on('end', function() {
     console.log("done uploading");
-    // getGitStatus();
+    getGitStatus();
   });
 }
 
@@ -366,15 +363,16 @@ function getGitStatus() {
     });
 
     response.on('end', function() {
-      if (JSON.parse(output)[0].state === 'pending') {
-        console.log('Awaiting user input from Github');
-        setTimeout(function() {
-          getGitStatus();
-        }, 3600);
-      } else {
-        // everything is good
-        postGitStatus(JSON.parse(output)[0].state);
-      }
+      console.log(output);
+      // if (JSON.parse(output)[0].state === 'pending') {
+      //   console.log('Awaiting user input from Github');
+      //   setTimeout(function() {
+      //     getGitStatus();
+      //   }, 3600);
+      // } else {
+      //   // everything is good
+      //   postGitStatus(JSON.parse(output)[0].state);
+      // }
     });
   };
 
