@@ -376,6 +376,7 @@ function getGitStatus() {
     });
   };
 
+  console.log(options);
   https.request(options, callback).end();
 }
 
