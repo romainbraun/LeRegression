@@ -51,6 +51,7 @@ describe('Regression', function() {
       browser.waitForAngular();
       if (page.wait) {
         setTimeout(capture.bind(null, name), page.wait);
+        browser.sleep(page.wait);
       } else {
         capture(name);
       }
