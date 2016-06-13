@@ -250,7 +250,7 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 15% ' +
+        exec('compare -metric AE -fuzz 20% ' +
              path.join(refPath, resolution, image) + ' ' +
              path.join(regPath, resolution, image) + ' ' +
              path.join(comparePath, resolution, image),
