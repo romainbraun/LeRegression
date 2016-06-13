@@ -278,7 +278,7 @@ function uploadComparedFiles() {
     console.error("unable to sync:", err.stack);
   });
   uploader.on('end', function() {
-    console.log("done uploading");
+    console.log("done uploading compared files");
 
   });
 }
@@ -347,7 +347,7 @@ function uploadHTML() {
 
   uploader.on('end', function() {
     console.log("done uploading");
-    getGitStatus();
+    // getGitStatus();
   });
 }
 
