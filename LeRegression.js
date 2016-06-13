@@ -218,21 +218,25 @@ function compareScreenshots() {
 
   console.log(fileStructure);
 
+  function checkForCompletion() {
+    if (callbackCount && callbackCount === count) {
+      uploadComparedFiles();
+      buildHTMLFile();
+    } else {
+      setTimeout(checkForCompletion, 1000);
+    }
+  }
+
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {
-      console.log(stderr);
-      callbackCount++;
       if (stderr < threshold) {
         rimraf(path.join(comparePath, resolution, image), function() {
           console.log('✔︎ No regression');
+          callbackCount++;
         });
       } else {
         console.log('✘ Regression detected!');
-      }
-
-      if (callbackCount === count) {
-        uploadComparedFiles();
-        buildHTMLFile();
+        callbackCount++;
       }
     };
   }
@@ -257,6 +261,8 @@ function compareScreenshots() {
              computeResult(resolution, image));
       }
     }
+
+    checkForCompletion();
   });
 }
 
