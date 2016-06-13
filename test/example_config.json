@@ -8,7 +8,7 @@
 
   "threshold": 8000,
 
-  "repository": "/repos/romainbraun/LeRegression"
+  "repository": "romainbraun/LeRegression",
 
   "s3config": {
     "client" : {

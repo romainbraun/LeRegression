@@ -122,7 +122,7 @@
 
       var options = {
         host: 'api.github.com',
-        path: '/repos/romainbraun/LeRegression/commits/' + hash + '/statuses',
+        path: '{{ path }}',
         headers: {
           'User-Agent': 'LeRegression',
           'Authorization': 'token ' + token

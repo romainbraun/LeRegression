@@ -45,11 +45,17 @@ describe('Regression', function() {
 
   });
 
-  function runTest(name, location) {
+  function runTest(name, page) {
     return function() {
-      browser.get(browser.params.env.hostname + location);
-      browser.waitForAngular();
-      capture(name);
+      browser.get(browser.params.env.hostname + page.url);
+      browser.waitForAngular().then(function() {
+        if (page.wait) {
+          setTimeout(capture.bind(null, name), page.wait);
+          browser.sleep(page.wait);
+        } else {
+          capture(name);
+        }
+      });
     };
   }
 

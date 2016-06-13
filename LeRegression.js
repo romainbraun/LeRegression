@@ -45,9 +45,9 @@ githubToken = program.githubToken;
 
 options = {
   host: 'api.github.com',
-  path: 'repos/' + config.repository + '/commits/' + commitHash + '/statuses',
+  path: '/repos/' + config.repository + '/statuses/' + commitHash,
   headers: {
-    'User-Agent': 'LeRegression',
+    'User-Agent': s3config.bucket.name,
     'Authorization': 'token ' + githubToken
   }
 };
@@ -218,21 +218,25 @@ function compareScreenshots() {
 
   console.log(fileStructure);
 
+  function checkForCompletion() {
+    if (callbackCount && callbackCount === count) {
+      uploadComparedFiles();
+      buildHTMLFile();
+    } else {
+      setTimeout(checkForCompletion, 1000);
+    }
+  }
+
   function computeResult(resolution, image) {
     return function (error, stdout, stderr) {
-      console.log(stderr);
-      callbackCount++;
       if (stderr < threshold) {
         rimraf(path.join(comparePath, resolution, image), function() {
           console.log('✔︎ No regression');
+          callbackCount++;
         });
       } else {
         console.log('✘ Regression detected!');
-      }
-
-      if (callbackCount === count) {
-        uploadComparedFiles();
-        buildHTMLFile();
+        callbackCount++;
       }
     };
   }
@@ -250,13 +254,15 @@ function compareScreenshots() {
 
         count++;
 
-        exec('compare -metric AE -fuzz 15% ' +
+        exec('compare -metric AE -fuzz 20% ' +
              path.join(refPath, resolution, image) + ' ' +
              path.join(regPath, resolution, image) + ' ' +
              path.join(comparePath, resolution, image),
              computeResult(resolution, image));
       }
     }
+
+    checkForCompletion();
   });
 }
 
@@ -278,7 +284,7 @@ function uploadComparedFiles() {
     console.error("unable to sync:", err.stack);
   });
   uploader.on('end', function() {
-    console.log("done uploading");
+    console.log("done uploading compared files");
 
   });
 }
@@ -288,13 +294,10 @@ function uploadComparedFiles() {
  */
 function buildHTMLFile() {
   var fileStructure = dirTree(comparePath);
-  console.log(fileStructure);
 
-  if (!fileStructure.children.length) {
+  if (!fileStructure || !fileStructure.children.length) {
     process.exit();
   }
-
-  console.log(fileStructure.children[0]);
 
   fs.readFile(path.join(__dirname, 'view/template.html'), function(err, data){
     if (!err) {
@@ -313,6 +316,7 @@ function buildHTMLFile() {
 
     data.hash  = commitHash;
     data.token = githubToken;
+    data.path = options.path;
 
     var outputString = template(data);
     console.log(outputString);
