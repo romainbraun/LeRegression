@@ -366,21 +366,28 @@ function getGitStatus() {
 
     response.on('end', function() {
       var data = JSON.parse(output);
-      
-      data.forEach(function(status) {
-        if (status.context === 'LeRegression' && status.state !== 'pending') {
-          postGitStatus(status.state);
+
+      for (var i = 0; i < data.length; i++) {
+        if (
+          data[i].status.context === 'LeRegression' &&
+          data[i].status.state !== 'pending'
+        ) {
+          postGitStatus(data[i].status.state);
         } else {
           console.log('Awaiting user input from Github');
-          setTimeout(function() {
-            getGitStatus();
-          }, 3600);
+          doSetTimeout();
         }
-      });
+      }
     });
   };
 
   https.request(options, callback).end();
+}
+
+function doSetTimeout() {
+  setTimeout(function() {
+    getGitStatus();
+  }, 3600);
 }
 
 function postGitStatus(status) {
