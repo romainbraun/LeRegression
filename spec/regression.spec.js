@@ -50,7 +50,7 @@ describe('Regression', function() {
       browser.get(browser.params.env.hostname + page.url);
       browser.waitForAngular();
       if (page.wait) {
-        setTimeout(capture(name), page.wait);
+        setTimeout(capture.bind(null, name), page.wait);
       } else {
         capture(name);
       }
