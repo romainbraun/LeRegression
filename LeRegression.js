@@ -365,7 +365,9 @@ function getGitStatus() {
     });
 
     response.on('end', function() {
-      JSON.parse(output).forEach(function(status) {
+      var data = JSON.parse(output);
+      
+      data.forEach(function(status) {
         if (status.context === 'LeRegression' && status.state !== 'pending') {
           postGitStatus(status.state);
         } else {
