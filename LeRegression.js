@@ -45,7 +45,7 @@ githubToken = program.githubToken;
 
 options = {
   host: 'api.github.com',
-  path: config.repository + '/statuses/' + commitHash,
+  path: '/repos/' + config.repository + '/statuses/' + commitHash,
   headers: {
     'User-Agent': s3config.bucket.name,
     'Authorization': 'token ' + githubToken
@@ -316,6 +316,7 @@ function buildHTMLFile() {
 
     data.hash  = commitHash;
     data.token = githubToken;
+    data.path = options.path;
 
     var outputString = template(data);
     console.log(outputString);
@@ -363,20 +364,18 @@ function getGitStatus() {
     });
 
     response.on('end', function() {
-      console.log(output);
-      // if (JSON.parse(output)[0].state === 'pending') {
-      //   console.log('Awaiting user input from Github');
-      //   setTimeout(function() {
-      //     getGitStatus();
-      //   }, 3600);
-      // } else {
-      //   // everything is good
-      //   postGitStatus(JSON.parse(output)[0].state);
-      // }
+      if (JSON.parse(output)[0].state === 'pending') {
+        console.log('Awaiting user input from Github');
+        setTimeout(function() {
+          getGitStatus();
+        }, 3600);
+      } else {
+        // everything is good
+        postGitStatus(JSON.parse(output)[0].state);
+      }
     });
   };
 
-  console.log(options);
   https.request(options, callback).end();
 }
 
