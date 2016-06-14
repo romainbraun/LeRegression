@@ -26,9 +26,9 @@
     "regression",
     "protractor",
     "angular",
+    "github",
     "ci",
-    "visual",
-    "regression"
+    "visual"
   ],
   "author": "Romain Braun (Old St Labs)",
   "license": "Apache-2.0",
