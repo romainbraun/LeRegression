@@ -359,7 +359,8 @@ function uploadHTML() {
   });
 
   uploader.on('end', function() {
-    console.log("done uploading HTML file");
+    console.log("done uploading HTML file.");
+    postGitStatus('pending');
     getGitStatus();
   });
 }
@@ -373,14 +374,18 @@ function getGitStatus() {
     });
 
     response.on('end', function() {
-      if (JSON.parse(output)[0].state === 'pending') {
-        console.log('Awaiting user input from Github');
-        setTimeout(function() {
-          getGitStatus();
-        }, 3600);
-      } else {
-        // everything is good
-        postGitStatus(JSON.parse(output)[0].state);
+      var data = JSON.parse(output);
+
+      for (var i = 0; i < data.length; i++) {
+        if (
+          data[i].status.context === 'LeRegression' &&
+          data[i].status.state !== 'pending'
+        ) {
+          postGitStatus(data[i].status.state);
+        } else {
+          console.log('Awaiting user input from Github');
+          doSetTimeout();
+        }
       }
     });
   };
@@ -388,16 +393,22 @@ function getGitStatus() {
   https.request(options, callback).end();
 }
 
+function doSetTimeout() {
+  setTimeout(function() {
+    getGitStatus();
+  }, 3600);
+}
+
 function postGitStatus(status) {
   options.method = 'POST';
 
   var request = https.request(options);
 
-  var url = 's3-eu-west-1.amazonaws.com/leregression/compare' + commitHash +
+  var url = 'http://s3-eu-west-1.amazonaws.com/leregression/compare' + commitHash +
             '.html';
 
   var content = {
-    'status': status,
+    'state': status,
     'target_url': url,
     'context': 'LeRegression'
   };
