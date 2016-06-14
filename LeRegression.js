@@ -28,6 +28,7 @@ program
   .option('-s, --secret-access-key [secret-access-key]', 'S3 Secret Access Key. These should be set as env variables in your CI environment')
   .option('-h, --commit-hash [commit-hash]', 'Hash of the current commit')
   .option('-t, --github-token [github-token]', 'GitHub access token')
+  .option('-r, --reset-reference', 'The script will only create reference files')
   .parse(process.argv);
 
 config = JSON.parse(fs.readFileSync(program.configFile, 'utf8'));
@@ -83,12 +84,15 @@ function init() {
 }
 
 function clean() {
-  // This is awful but can be fixed easily. later though
+  console.log('Cleaning existing files');
   rimraf(refPath, function() {
-    rimraf(regPath, function() {
+    if (!program.resetReference) {
+      console.log('Downloading existing reference if there is one');
       downloadRemoteReference();
-      takeScreenshots();
-    });
+    }
+  });
+  rimraf(regPath, function() {
+    takeScreenshots();
   });
 }
 
@@ -112,7 +116,7 @@ function downloadRemoteReference() {
     console.error("unable to sync:", err.stack);
   });
   downloader.on('end', function() {
-    console.log("done downloading");
+    console.log("done downloading reference");
   });
 }
 
@@ -122,6 +126,7 @@ function downloadRemoteReference() {
 function takeScreenshots() {
   var command = '';
 
+  console.log('Taking screenshots...');
   for (var i = 0; i < config.capabilities.length; i++) {
     var capability = config.capabilities[i];
     command += (process.env.PROTRACTOR_BIN || 'protractor') + ' ' + capability + ' & ';
@@ -130,9 +135,8 @@ function takeScreenshots() {
 
   var child = exec(command,
     function (error, stdout, stderr) {
-      console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
-      uploadRegressionDirectory();
+      console.log('Done!');
+      checkForLocalReference();
       if (error !== null) {
         console.log('exec error: ' + error);
       }
@@ -143,6 +147,7 @@ function takeScreenshots() {
  * STEP 5
  */
 function uploadRegressionDirectory() {
+  console.log('uploading screenshots...');
   var params = {
     localDir: regPath,
 
@@ -160,17 +165,16 @@ function uploadRegressionDirectory() {
   });
   uploader.on('end', function() {
     console.log("done uploading");
-    if (!isRemoteReference) {
-    }
-    checkForLocalReference();
+    compareScreenshots();
   });
 }
 
 /**
  * STEP 6
  */
-function duplicateRemoteRegression() {
-  // Need to make this much better so we duplicate it on s3 instead or re-uploading the whole thing
+function uploadReferenceDirectory() {
+  console.log('uploading reference...');
+
   var params = {
     localDir: regPath,
 
@@ -187,8 +191,8 @@ function duplicateRemoteRegression() {
     console.error("unable to sync:", err.stack);
   });
   uploader.on('end', function() {
-    process.exit();
     console.log("done uploading");
+    process.exit();
   });
 }
 
@@ -198,11 +202,11 @@ function duplicateRemoteRegression() {
 function checkForLocalReference() {
   fs.exists(refPath, function(exists) {
     if (exists) {
-      console.log('reference!');
-      compareScreenshots();
+      console.log('Reference found.');
+      uploadRegressionDirectory();
     } else {
-      console.log('no reference!');
-      duplicateRemoteRegression();
+      console.log('No reference found.');
+      uploadReferenceDirectory();
     }
   });
 }
@@ -216,10 +220,9 @@ function compareScreenshots() {
       callbackCount = 0,
       count = 0;
 
-  console.log(fileStructure);
-
   function checkForCompletion() {
     if (callbackCount && callbackCount === count) {
+      console.log('Done comparing.');
       uploadComparedFiles();
       buildHTMLFile();
     } else {
@@ -240,6 +243,8 @@ function compareScreenshots() {
       }
     };
   }
+
+  console.log('comparing screenshots...');
 
   rimraf(comparePath, function() {
     fs.mkdirSync(comparePath);
@@ -270,6 +275,7 @@ function compareScreenshots() {
  * STEP 9
  */
 function uploadComparedFiles() {
+  console.log('uploading compared files...');
   var params = {
     localDir: comparePath,
 
@@ -295,9 +301,13 @@ function uploadComparedFiles() {
 function buildHTMLFile() {
   var fileStructure = dirTree(comparePath);
 
+
   if (!fileStructure || !fileStructure.children.length) {
+    console.log('Regression checks all passed.');
     process.exit();
   }
+
+  console.log('building HTML file');
 
   fs.readFile(path.join(__dirname, 'view/template.html'), function(err, data){
     if (!err) {
@@ -319,13 +329,12 @@ function buildHTMLFile() {
     data.path = options.path;
 
     var outputString = template(data);
-    console.log(outputString);
+
     fs.writeFile("/tmp/rendered.html", outputString, function(err) {
       if(err) {
           return console.log(err);
       }
 
-      console.log("The file was saved!");
       uploadHTML();
     });
   }
@@ -350,7 +359,7 @@ function uploadHTML() {
   });
 
   uploader.on('end', function() {
-    console.log("done uploading");
+    console.log("done uploading HTML file");
     getGitStatus();
   });
 }
