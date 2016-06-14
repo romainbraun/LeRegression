@@ -42,6 +42,7 @@
         height: 39px;
         padding: 10px 15px;
         border: none;
+        cursor: pointer;
       }
 
       .button--green {
@@ -74,11 +75,11 @@
       <div class="header__buttons">
 
         <button class="button button--red" action="failure">
-          Try again you bus wanker
+          Fail
         </button>
 
         <button class="button button--green" action="success">
-          All good bruv
+          Pass
         </button>
 
       </div>
@@ -159,7 +160,7 @@
           }
 
           http.send(JSON.stringify(data));
-        }
+        };
       }
     </script>
 
