@@ -28,6 +28,8 @@ init();
 function init() {
   config = JSON.parse(fs.readFileSync(program.configFile, 'utf8'));
 
+  console.log(program.accessKeyId, program.secretAccessKey);
+
   s3Sync.createClient(config.s3config, program.accessKeyId, program.secretAccessKey);
 
   github.setup({
