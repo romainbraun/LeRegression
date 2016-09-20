@@ -1,17 +1,18 @@
 {
   "name": "le-regression",
-  "version": "1.1.35",
+  "version": "1.1.39",
   "description": "Protractor automated visual regression testing tool",
   "main": "LeRegression.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
+    "async": "^2.0.1",
     "commander": "^2.9.0",
-    "directory-tree": "^1.0.0",
+    "directory-tree": "^1.1.0",
     "handlebars": "^4.0.5",
     "protractor": "^3.3.0",
-    "rimraf": "^2.5.2",
+    "rimraf": "^2.5.4",
     "s3": "^4.4.0"
   },
   "devDependencies": {},

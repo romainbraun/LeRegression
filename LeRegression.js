@@ -39,6 +39,11 @@ function init() {
     'githubToken': program.githubToken
   });
 
+  if (program.resetReference) {
+    resetReference();
+    return;
+  }
+
   folders.createSafely('/tmp/leregression/', function() {
     folders.move(config.sitemap, '/tmp/leregression/sitemap.json');
     folders.move(path.join(__dirname, 'spec/regression.spec.js'), '/tmp/leregression/regression.spec.js');
@@ -58,6 +63,25 @@ function clean() {
   rimraf(folders.regPath, function() {
     takeScreenshots();
   });
+}
+
+function resetReference() {
+  var regParams = {
+    Bucket: config.s3config.bucket.name,
+    Prefix: "regression/"
+  };
+
+  var refParams = {
+    Bucket: config.s3config.bucket.name,
+    Prefix: "reference/"
+  };
+
+  s3Sync.deleteDir(refParams, function() {
+    s3Sync.moveDir(regParams, refParams, function() {
+      process.exit();
+    });  
+  });
+  
 }
 
 function downloadRemoteReference() {
