@@ -3,8 +3,10 @@ var siteMap = require('/tmp/leregression/sitemap.json');
 
 describe('Regression', function() {
   var browserName, browserSize;
+
   var capture = function (name) {
     name = name.replace(/ /g, '_');
+    console.log('about to screen');
     return browser.takeScreenshot().then(function (png) {
         var image_path = '/tmp/leregression/regression/' +
                           browserName +
@@ -13,9 +15,13 @@ describe('Regression', function() {
                           name +
                           '.png';
         var stream = fs.createWriteStream(image_path);
+        stream.on('finish', function() {
+          console.log('screen!');
+          return image_path;  
+        });
         stream.write(new Buffer(png, 'base64'));
         stream.end();
-        return image_path;
+        
     });
   };
 
@@ -47,14 +53,23 @@ describe('Regression', function() {
 
   function runTest(name, page) {
     return function() {
-      browser.get(browser.params.env.hostname + page.url);
-      browser.waitForAngular().then(function() {
-        if (page.wait) {
-          setTimeout(capture.bind(null, name), page.wait);
-          browser.sleep(page.wait);
-        } else {
-          capture(name);
-        }
+      console.log('wha');
+      browser
+        .get(browser.params.env.hostname + page.url)
+        .then(browser.waitForAngular.bind(browser))
+        .then(function() {
+          if (page.wait) {
+            console.log('capture');
+            setTimeout(function() {
+              console.log('expect');
+              expect(capture(name)).toBeTruthy();
+            }, page.wait);
+            browser.sleep(page.wait + 100);
+            console.log('slept');
+          } else {
+            console.log('capture');
+            expect(capture(name)).toBeTruthy();
+          }
       });
     };
   }
