@@ -6,7 +6,6 @@ describe('Regression', function() {
 
   var capture = function (name) {
     name = name.replace(/ /g, '_');
-    console.log('about to screen');
     return browser.takeScreenshot().then(function (png) {
         var image_path = '/tmp/leregression/regression/' +
                           browserName +
@@ -16,7 +15,6 @@ describe('Regression', function() {
                           '.png';
         var stream = fs.createWriteStream(image_path);
         stream.on('finish', function() {
-          console.log('screen!');
           return image_path;  
         });
         stream.write(new Buffer(png, 'base64'));
@@ -53,21 +51,16 @@ describe('Regression', function() {
 
   function runTest(name, page) {
     return function() {
-      console.log('wha');
       browser
         .get(browser.params.env.hostname + page.url)
         .then(browser.waitForAngular.bind(browser))
         .then(function() {
           if (page.wait) {
-            console.log('capture');
             setTimeout(function() {
-              console.log('expect');
               expect(capture(name)).toBeTruthy();
             }, page.wait);
             browser.sleep(page.wait + 100);
-            console.log('slept');
           } else {
-            console.log('capture');
             expect(capture(name)).toBeTruthy();
           }
       });
