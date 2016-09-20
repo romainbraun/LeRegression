@@ -66,6 +66,7 @@ function clean() {
 }
 
 function resetReference() {
+  console.log('resetting reference...');
   var regParams = {
     Bucket: config.s3config.bucket.name,
     Prefix: "regression/"
@@ -78,6 +79,7 @@ function resetReference() {
 
   s3Sync.deleteDir(refParams, function() {
     s3Sync.moveDir(regParams, refParams, function() {
+      console.log('Done!');
       process.exit();
     });  
   });
