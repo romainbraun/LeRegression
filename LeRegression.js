@@ -30,12 +30,14 @@ function init() {
 
   s3Sync.createClient(config.s3config, program.accessKeyId, program.secretAccessKey);
 
-  github.setup({
-    'repository': config.repository,
-    'commitHash': program.commitHash,
-    'bucketName': config.s3config.bucket.name,
-    'githubToken': program.githubToken
-  });
+  if (program.githubToken) {
+    github.setup({
+      'repository': config.repository,
+      'commitHash': program.commitHash,
+      'bucketName': config.s3config.bucket.name,
+      'githubToken': program.githubToken
+    });
+  }
 
   if (program.resetReference) {
     folders.createSafely('/tmp/leregression/', function() {
@@ -165,15 +167,18 @@ function compareScreenshots() {
 }
 
 function buildHTMLFile() {
+  var params = {
+    comparePath: folders.comparePath,
+    commitHash : program.commitHash,
+    token      : program.githubToken,
+    repoPath   : github.getPath()
+  };
+
   uploadComparedFiles();
-  html.buildHTMLFile(
-    folders.comparePath, 
-    program.commitHash,
-    program.githubToken,
-    github.getPath(),
-    function() {
-      uploadHTML();
-    });
+
+  html.buildHTMLFile(params, function() {
+    uploadHTML();
+  });
 }
 
 function uploadComparedFiles() {
@@ -204,7 +209,11 @@ function uploadHTML() {
   };
 
   s3Sync.uploadFile(params, function() {
-    github.postGitStatus('pending', program.commitHash, config.s3config.bucket.name);
-    github.getGitStatus();
+    if (program.githubToken) {
+      github.postGitStatus('pending', program.commitHash, config.s3config.bucket.name);
+      github.getGitStatus();
+    } else {
+      process.exit();
+    }
   });
 }
