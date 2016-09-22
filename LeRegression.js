@@ -77,12 +77,10 @@ function resetReference() {
     Prefix: "reference/"
   };
 
-  s3Sync.deleteDir(refParams, function() {
-    s3Sync.moveDir(regParams, refParams, function() {
-      console.log('Done!');
-      process.exit();
-    });  
-  });
+  s3Sync.moveDir(regParams, refParams, function() {
+    console.log('Done!');
+    process.exit();
+  });  
   
 }
 
@@ -165,15 +163,16 @@ function compareScreenshots() {
 }
 
 function buildHTMLFile() {
+  var params = {
+    comparePath: folders.comparePath,
+    commitHash : program.commitHash,
+    token      : program.githubToken,
+    repoPath   : github.getPath()
+  };
+
   uploadComparedFiles();
-  html.buildHTMLFile(
-    folders.comparePath, 
-    program.commitHash,
-    program.githubToken,
-    github.getPath(),
-    function() {
-      uploadHTML();
-    });
+
+  html.buildHTMLFile(params);
 }
 
 function uploadComparedFiles() {
@@ -189,7 +188,9 @@ function uploadComparedFiles() {
     }
   };
 
-  s3Sync.upload(params);
+  s3Sync.upload(params, function() {
+    uploadHTML();
+  });
 }
 
 function uploadHTML() {
@@ -204,7 +205,11 @@ function uploadHTML() {
   };
 
   s3Sync.uploadFile(params, function() {
-    github.postGitStatus('pending', program.commitHash, config.s3config.bucket.name);
-    github.getGitStatus();
+    if (program.githubToken) {
+      github.postGitStatus('pending', program.commitHash, config.s3config.bucket.name);
+      github.getGitStatus();
+    } else {
+      process.exit();
+    }
   });
 }
