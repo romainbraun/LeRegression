@@ -30,14 +30,12 @@ function init() {
 
   s3Sync.createClient(config.s3config, program.accessKeyId, program.secretAccessKey);
 
-  if (program.githubToken) {
-    github.setup({
-      'repository': config.repository,
-      'commitHash': program.commitHash,
-      'bucketName': config.s3config.bucket.name,
-      'githubToken': program.githubToken
-    });
-  }
+  github.setup({
+    'repository': config.repository,
+    'commitHash': program.commitHash,
+    'bucketName': config.s3config.bucket.name,
+    'githubToken': program.githubToken
+  });
 
   if (program.resetReference) {
     folders.createSafely('/tmp/leregression/', function() {
@@ -79,12 +77,10 @@ function resetReference() {
     Prefix: "reference/"
   };
 
-  s3Sync.deleteDir(refParams, function() {
-    s3Sync.moveDir(regParams, refParams, function() {
-      console.log('Done!');
-      process.exit();
-    });  
-  });
+  s3Sync.moveDir(regParams, refParams, function() {
+    console.log('Done!');
+    process.exit();
+  });  
   
 }
 
@@ -176,9 +172,7 @@ function buildHTMLFile() {
 
   uploadComparedFiles();
 
-  html.buildHTMLFile(params, function() {
-    uploadHTML();
-  });
+  html.buildHTMLFile(params);
 }
 
 function uploadComparedFiles() {
@@ -194,7 +188,9 @@ function uploadComparedFiles() {
     }
   };
 
-  s3Sync.upload(params);
+  s3Sync.upload(params, function() {
+    uploadHTML();
+  });
 }
 
 function uploadHTML() {
