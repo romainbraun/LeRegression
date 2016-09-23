@@ -9,6 +9,7 @@ describe('Regression', function() {
     return browser.takeScreenshot().then(function (png) {
         var image_path = '/tmp/leregression/regression/' +
                           browserName +
+                          '_' +
                           browserSize +
                           '/' +
                           name +
@@ -31,7 +32,7 @@ describe('Regression', function() {
     }
 
     browser.getCapabilities().then(function (cap) {
-      browserName = cap.get('browserName');
+      browserName = cap.get('browserName').replace(new RegExp(' ', 'g'), '_');
 
       browser.driver.manage().window().getSize().then(function(size) {
 
