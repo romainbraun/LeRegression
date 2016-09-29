@@ -39,7 +39,7 @@ describe('Regression', function() {
         browserSize = size.width + 'x' + size.height;
 
         try {
-          fs.mkdirSync('/tmp/leregression/regression/' + browserName + browserSize);
+          fs.mkdirSync('/tmp/leregression/regression/' + browserName + '_'  + browserSize);
         } catch(e) {
           if ( e.code != 'EEXIST' ) throw e;
         }
@@ -58,11 +58,19 @@ describe('Regression', function() {
         .then(function() {
           if (page.wait) {
             setTimeout(function() {
-              expect(capture(name)).toBeTruthy();
+              var done = capture(name);
+
+              browser.wait(function() {
+                return done;
+              }, 10000);
             }, page.wait);
             browser.sleep(page.wait + 100);
           } else {
-            expect(capture(name)).toBeTruthy();
+            var done = capture(name);
+              
+            browser.wait(function() {
+              return done;
+            }, 10000);
           }
       });
     };
