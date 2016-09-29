@@ -1,6 +1,6 @@
 {
   "name": "le-regression",
-  "version": "1.2.8",
+  "version": "1.2.11",
   "description": "Protractor automated visual regression testing tool",
   "main": "LeRegression.js",
   "directories": {
