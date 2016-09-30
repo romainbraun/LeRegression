@@ -58,19 +58,11 @@ describe('Regression', function() {
         .then(function() {
           if (page.wait) {
             setTimeout(function() {
-              var done = capture(name);
-
-              browser.wait(function() {
-                return done;
-              }, 10000);
+              capture(name);
             }, page.wait);
             browser.sleep(page.wait + 100);
           } else {
-            var done = capture(name);
-              
-            browser.wait(function() {
-              return done;
-            }, 10000);
+            capture(name);
           }
       });
     };

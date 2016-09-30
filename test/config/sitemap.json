@@ -2,5 +2,11 @@
   "Home": {
     "url": "/",
     "wait": 3000
+  },
+  "About": {
+    "url": "/#/about"
+  },
+  "Social": {
+    "url": "/#/categories/social"
   }
 }
