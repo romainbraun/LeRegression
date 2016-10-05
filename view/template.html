@@ -109,11 +109,11 @@
       <div class="header__buttons">
 
         <button class="button button--red" action="failure">
-          Fail
+          Non Non
         </button>
 
         <button class="button button--green" action="success">
-          Pass
+          Oui Oui
         </button>
 
       </div>
@@ -123,14 +123,14 @@
     <div class="results">
 
       {{#children}}
-      <ul class="resolution">
-          <li>
+      <ul>
+          <li class="resolution">
               <h2>{{name}}</h2>
 
               {{#if children.length}}
                 {{#children}}
-                <ul class="page">
-                    <li>
+                <ul>
+                    <li class="page">
                         <h3>{{name}}</h3>
                         <img src="reference/{{../name}}/{{name}}">
                         <img src="regression/{{../name}}/{{name}}">
