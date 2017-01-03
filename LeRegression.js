@@ -50,7 +50,6 @@ function init() {
     });  
   }
 
-  
 }
 
 function clean() {
@@ -67,22 +66,12 @@ function clean() {
 }
 
 function resetReference() {
-  console.log('resetting reference...');
-  var regParams = {
-    Bucket: config.s3config.bucket.name,
-    Prefix: "regression/"
-  };
-
-  var refParams = {
-    Bucket: config.s3config.bucket.name,
-    Prefix: "reference/"
-  };
-
-  s3Sync.moveDir(regParams, refParams, function() {
-    console.log('Done!');
-    process.exit();
-  });  
-  
+  rimraf(folders.refPath, function() {
+    console.log('resetting reference...');
+    rimraf(folders.regPath, function() {
+      takeScreenshots();
+    });
+  });
 }
 
 function downloadRemoteReference() {
