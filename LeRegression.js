@@ -37,19 +37,16 @@ function init() {
     'githubToken': program.githubToken
   });
 
-  if (program.resetReference) {
-    folders.createSafely('/tmp/leregression/', function() {
+  folders.createSafely('/tmp/leregression/', function() {
+    folders.move(config.sitemap, '/tmp/leregression/sitemap.json');
+    folders.move(path.join(__dirname, 'spec/regression.spec.js'), '/tmp/leregression/regression.spec.js');
+
+    if (program.resetReference) {
       resetReference();
-    });
-  } else {
-    folders.createSafely('/tmp/leregression/', function() {
-      folders.move(config.sitemap, '/tmp/leregression/sitemap.json');
-      folders.move(path.join(__dirname, 'spec/regression.spec.js'), '/tmp/leregression/regression.spec.js');
-
-      clean();
-    });  
-  }
-
+    } else {
+      clean();  
+    }
+  });
 }
 
 function clean() {

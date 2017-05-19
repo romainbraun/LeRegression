@@ -3,7 +3,7 @@ A protractor automated visual regression tool
 
 ## Installation
 
-LeRegression requires [Node.js](https://nodejs.org/) v4+ to run.
+LeRegression requires [Node.js](https://nodejs.org/) v4+ and [ImageMagick](https://www.imagemagick.org/script/download.php) to run.
 
 > `npm install --save-dev le-regression`
 
